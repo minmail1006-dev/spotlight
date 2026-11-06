@@ -25,3 +25,4 @@ dist-ssr
 
 # local sync folder used during setup
 .sync
+ADMIN-LOGIN.txt

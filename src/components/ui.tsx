@@ -67,7 +67,7 @@ export function TopBar({ title, back, right }: { title?: string; back?: boolean 
         >
           ←
         </button>
-      ) : (
+      ) : title ? null : (
         <Link to="/" className="brand" aria-label="Spotlight home">
           <span className="brand-mark" aria-hidden>
             ◆
@@ -75,7 +75,7 @@ export function TopBar({ title, back, right }: { title?: string; back?: boolean 
           Spotlight
         </Link>
       )}
-      {title && <h1 className="topbar-title">{title}</h1>}
+      {title && <h1 className={back ? 'topbar-title' : 'topbar-title topbar-title-big'}>{title}</h1>}
       <div className="topbar-right">{right}</div>
     </header>
   )
