@@ -1,7 +1,8 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { HashRouter, Navigate, NavLink, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import { Spinner, ToastProvider } from './components/ui'
 import { AuthProvider, useAuth } from './lib/auth'
+import SplashScreen from './components/SplashScreen'
 import Admin from './pages/Admin'
 import Discover from './pages/Discover'
 import Login from './pages/Login'
@@ -51,9 +52,12 @@ function Layout() {
 }
 
 export default function App() {
+  const [showSplash, setShowSplash] = useState(true)
+
   return (
     <AuthProvider>
       <ToastProvider>
+        {showSplash && <SplashScreen onDone={() => setShowSplash(false)} />}
         <HashRouter>
           <Routes>
             <Route path="/login" element={<Login />} />
