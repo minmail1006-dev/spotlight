@@ -50,6 +50,9 @@ export default function VenuePage() {
           {venue.address}
           {venue.is_fictional && <span className="pill pill-demo">Fictional demo venue</span>}
         </p>
+        {venue.lat != null && (
+          <Link to={`/map?venue=${venue.slug}`} className="link">◎ Show on map</Link>
+        )}
       </section>
 
       <section>

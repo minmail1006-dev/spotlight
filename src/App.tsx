@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { HashRouter, Navigate, NavLink, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import { Spinner, ToastProvider } from './components/ui'
 import { AuthProvider, useAuth } from './lib/auth'
@@ -10,6 +11,9 @@ import PlanPage from './pages/PlanPage'
 import Safety from './pages/Safety'
 import VenuePage from './pages/VenuePage'
 import Venues from './pages/Venues'
+
+// The map library is large, so it is only downloaded when the map is opened
+const MapPage = lazy(() => import('./pages/MapPage'))
 
 function RequireAuth() {
   const { session, loading } = useAuth()
@@ -29,11 +33,14 @@ function Layout() {
         <NavLink to="/" end className="tab">
           <span className="tab-icon" aria-hidden>✦</span>Discover
         </NavLink>
-        <NavLink to="/venues" className="tab">
-          <span className="tab-icon" aria-hidden>⌂</span>Venues
+        <NavLink to="/map" className="tab">
+          <span className="tab-icon" aria-hidden>◎</span>Map
         </NavLink>
         <NavLink to="/new" className="tab tab-post">
           <span className="tab-post-btn" aria-hidden>+</span>Post plan
+        </NavLink>
+        <NavLink to="/venues" className="tab">
+          <span className="tab-icon" aria-hidden>⌂</span>Venues
         </NavLink>
         <NavLink to="/me" className="tab">
           <span className="tab-icon" aria-hidden>☺</span>Me
@@ -55,6 +62,7 @@ export default function App() {
               <Route element={<Layout />}>
                 <Route path="/" element={<Discover />} />
                 <Route path="/venues" element={<Venues />} />
+                <Route path="/map" element={<Suspense fallback={<div className="center-screen"><Spinner /></div>}><MapPage /></Suspense>} />
                 <Route path="/venue/:slug" element={<VenuePage />} />
                 <Route path="/new" element={<NewPlan />} />
                 <Route path="/plan/:id" element={<PlanPage />} />

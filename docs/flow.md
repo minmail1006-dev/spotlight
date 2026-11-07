@@ -11,6 +11,7 @@ join, check in together at the venue, and the discount unlocks.
 | 0 | Sign in / create account (18+ and consent checkboxes) or quick test login | Login | `src/pages/Login.tsx` |
 | 1 | Browse open plans, filter by *when*, *category* and *neighbourhood* | Discover | `src/pages/Discover.tsx` |
 | 1b | Browse venues with discount and number of open plans | Venues | `src/pages/Venues.tsx` |
+| 1c | 3D map: venue pins with discount and open plans, neighbourhood fly-to, 2D/3D toggle, "find me" | Map | `src/pages/MapPage.tsx` |
 | 2 | Open a venue feed: offer, best times, plans at this venue | Venue | `src/pages/VenuePage.tsx` |
 | 3 | Post a plan: venue, title, time, group size, note. Suggests joining an existing plan at the same place ±90 min (reduces "thin plans") | Post plan | `src/pages/NewPlan.tsx` |
 | 4 | Open a plan: who is going (live count), join / leave / cancel, report | Plan | `src/pages/PlanPage.tsx` |

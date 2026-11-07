@@ -11,12 +11,14 @@ The aim is to lower the threshold for meeting new people. Never use the word
 ## Stack
 - React 19 + TypeScript + Vite, react-router (HashRouter, for GitHub Pages)
 - Supabase: Postgres, Auth (email + password), Realtime
+- Map: MapLibre GL JS with the OpenFreeMap "liberty" style (OpenStreetMap data, 3D buildings)
 - Hosting: GitHub Pages, deployed by `.github/workflows/deploy.yml` on push to `main`
 - No CSS framework: plain CSS in `src/index.css` (mobile-first, max width 560px)
 
 ## Where things are
 - `src/config.ts`: Supabase URL, publishable key, test accounts, rule constants
 - `src/pages/*`: one file per screen (see docs/flow.md)
+- `src/pages/MapPage.tsx`: 3D map (MapLibre GL JS + OpenFreeMap tiles, no API key), lazy-loaded
 - `src/lib/hooks.ts`: `usePlans` (live via Realtime), `useVenues`, `useNow`
 - `src/lib/log.ts`: `logEvent()` for user-test logging
 - `supabase/migrations/*.sql`: schema, RLS, business rules (RPC functions), seed data

@@ -21,6 +21,8 @@ export type Venue = {
   color: string
   is_fictional: boolean
   sort_order: number
+  lat: number | null
+  lng: number | null
 }
 
 export type Plan = {

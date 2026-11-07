@@ -87,7 +87,10 @@ export default function Discover() {
       <section>
         <div className="section-head">
           <h2 className="section-title">Open plans</h2>
-          <Link to="/new" className="link">+ Post a plan</Link>
+          <span className="row-links">
+            <Link to="/map" className="link">◎ Map</Link>
+            <Link to="/new" className="link">+ Post a plan</Link>
+          </span>
         </div>
         <div className="chips" role="group" aria-label="When">
           {(['all', 'now', 'today', 'week'] as When[]).map((w) => (

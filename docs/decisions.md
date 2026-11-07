@@ -25,3 +25,8 @@ The course requires that the build can be explained and justified. Each line: de
 | 19 | Reset button (admin only) re-creates 10 sample plans relative to now | Every test session starts from the same state. |
 | 20 | All venues and seed users are fictional and labelled as such | No real business has agreed to the offers. |
 | 21 | The word "lonely" is never used in the interface | Stigma is one of the root causes; the app frames it as spontaneous fun. |
+| 22 | Map with MapLibre GL JS + OpenFreeMap tiles (OpenStreetMap data) | Free and open source, no account or API key, always up to date, and shows Copenhagen's buildings in 3D. Mapbox/Google need accounts and (for Google) billing. |
+| 23 | Map shows pins with discount and number of open plans; tapping a pin shows the venue's next plans | Makes "where is something happening near me?" visible, which supports the activity loop (R1). |
+| 24 | Neighbourhood chips fly the map to an area; "Show on map" from each venue page | Lets users find places in a specific part of the city, as requested. |
+| 25 | Venue coordinates are plausible spots in the right neighbourhood | The venues are fictional; real coordinates would come from partner venues. |
+| 26 | The map code is loaded only when the map is opened | The map library is large; the rest of the app stays fast on mobile data. |

@@ -21,7 +21,7 @@ erDiagram
 | Table | Key fields | Notes |
 |-------|-----------|-------|
 | **profiles** (User) | id (= auth user id), display_name, is_admin, is_test_account, seed_key, confirmed_18 | Created by a trigger at sign-up. Users can only change `display_name`. |
-| **venues** (Venue) | slug, name, category, neighborhood, offer, discount_pct, quiet_hours, emoji, color, is_fictional | Public read. 10 fictional Copenhagen venues. |
+| **venues** (Venue) | slug, name, category, neighborhood, offer, discount_pct, quiet_hours, emoji, color, is_fictional, lat, lng | Public read. 10 fictional Copenhagen venues. |
 | **venue_codes** | venue_id, code | Secret 4-char check-in codes. No client access; admins read them via `get_venue_codes()`. |
 | **plans** (Plan) | venue_id, host_id, title, note, starts_at, max_size (2–8), status (open/cancelled) | Insert validated by trigger (future time, ≤14 days ahead, ≤3 upcoming per host). |
 | **rsvps** (RSVP) | plan_id, user_id, created_at | Written only by `join_plan` / `leave_plan`. Host is added automatically. |
@@ -44,6 +44,6 @@ erDiagram
 
 ## Event names logged
 
-`session_start`, `view_venue`, `view_plan`, `open_new_plan`, `plan_posted`*, `plan_joined`*,
+`session_start`, `view_venue`, `view_plan`, `view_map`, `map_select_venue`, `map_area`, `open_new_plan`, `plan_posted`*, `plan_joined`*,
 `plan_left`*, `plan_cancelled`*, `checkin_failed`*, `checked_in`*, `discount_unlocked`*,
 `report_filed`, `sign_out`, `data_reset`*  (* = logged by the database, cannot be skipped)

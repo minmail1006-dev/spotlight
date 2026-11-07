@@ -19,6 +19,7 @@ Student MVP for the course DM-BDP.
 | Real (working) | Simulated | Planned (not built) |
 |---|---|---|
 | Browse venues and plans with filters | Partner venues and offers (fictional) | Real login providers (Google/Apple), email verification |
+| 3D map of Copenhagen with venue pins (OpenStreetMap) | Venue locations (plausible spots, fictional venues) | |
 | Post a plan | Seed users and sample plans | Moderation workflow for reports |
 | Join/leave with live RSVP count | Staff verification (via venue code) | Venue dashboard |
 | Check in with a venue code | The discount itself (no payment) | Payments and commission per redeemed meetup |
@@ -45,7 +46,7 @@ Every push to `main` builds and deploys to GitHub Pages (`.github/workflows/depl
 Repository settings → Pages → Source must be **GitHub Actions**.
 
 ## Set up a new Supabase project (only if moving to a fresh project)
-1. Create a project, then run `supabase/migrations/001_schema.sql` and `002_seed_venues.sql` in the SQL editor.
+1. Create a project, then run `supabase/migrations/001_schema.sql`, `002_seed_venues.sql` and `004_venue_locations.sql` in the SQL editor.
 2. Authentication → Sign In / Providers → Email: turn **off** "Confirm email". Set the Site URL to the Pages URL.
 3. Create accounts: `SUPABASE_URL=... SUPABASE_SECRET_KEY=... ADMIN_PASSWORD=... node scripts/create-accounts.mjs`
 4. Run `003_mark_test_accounts.sql`.
@@ -57,4 +58,7 @@ Repository settings → Pages → Source must be **GitHub Actions**.
 - After a transfer: update the Site URL and Redirect URLs under Authentication → URL Configuration to the new Pages URL, and update the link at the top of this README.
 
 ## Tech
-React 19, TypeScript, Vite, react-router (HashRouter), Supabase (Postgres, Auth, Realtime), GitHub Pages.
+React 19, TypeScript, Vite, react-router (HashRouter), Supabase (Postgres, Auth, Realtime), MapLibre GL JS with free OpenFreeMap tiles (OpenStreetMap data, no API key), GitHub Pages.
+
+## Troubleshooting
+If the deploy workflow fails with "in progress deployment", wait a few minutes and run it again under Actions → Deploy to GitHub Pages → Run workflow.
