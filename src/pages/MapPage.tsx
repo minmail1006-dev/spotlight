@@ -212,7 +212,7 @@ export default function MapPage() {
           </div>
           <p className="small map-card-offer">{selected.offer}</p>
           {selectedPlans.length === 0 ? (
-            <p className="muted small">No open plans here yet. Be the first!</p>
+            <p className="muted small">No plans here at the moment.</p>
           ) : (
             <ul className="map-card-plans">
               {selectedPlans.slice(0, 3).map((p) => (
@@ -229,8 +229,8 @@ export default function MapPage() {
             </ul>
           )}
           <div className="row">
-            <Link to={`/venue/${selected.slug}`} className="btn btn-ghost btn-small">Venue page</Link>
-            <Link to={`/new?venue=${selected.slug}`} className="btn btn-primary btn-small">Post a plan here</Link>
+            <Link to={`/venue/${selected.slug}`} className="btn btn-ghost btn-small">Spot details</Link>
+            <Link to={`/new?venue=${selected.slug}`} className="btn btn-primary btn-small">Start a plan here</Link>
           </div>
         </div>
       )}

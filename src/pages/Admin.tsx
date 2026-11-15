@@ -30,7 +30,7 @@ export default function Admin() {
   const load = useCallback(async () => {
     const [ev, pr, vc, rp] = await Promise.all([
       supabase.from('events').select('*').order('created_at', { ascending: true }).limit(10000),
-      supabase.from('profiles').select('id, display_name, is_admin, seed_key'),
+      supabase.rpc('admin_list_profiles'),
       supabase.rpc('get_venue_codes'),
       supabase.from('reports').select('id, reason, details, created_at, plan:plans(title), reporter:profiles!reports_reporter_id_fkey(display_name)').order('created_at', { ascending: false }),
     ])
@@ -173,7 +173,7 @@ export default function Admin() {
       </section>
 
       <section className="card">
-        <h2 className="section-title">Venue check-in codes</h2>
+        <h2 className="section-title">Spot check-in codes</h2>
         <p className="muted small">In real life staff would give these out. In the test, the facilitator does.</p>
         <table className="table codes">
           <tbody>

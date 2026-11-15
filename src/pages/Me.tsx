@@ -39,7 +39,7 @@ export default function Me() {
     if (error) return toast(errorMessage(error))
     await refreshProfile()
     setEditing(false)
-    toast('Name updated')
+    toast('Name saved')
   }
 
   return (
@@ -68,9 +68,9 @@ export default function Me() {
       </section>
 
       <section>
-        <h2 className="section-title">Upcoming</h2>
+        <h2 className="section-title">Coming up</h2>
         {upcoming.length === 0 ? (
-          <Empty title="Nothing planned yet"><Link to="/" className="btn btn-primary">Find a plan</Link></Empty>
+          <Empty title="You haven’t joined a plan yet"><Link to="/" className="btn btn-primary">Browse plans</Link></Empty>
         ) : (
           <div className="list">{upcoming.map((p) => <PlanCard key={p.id} plan={p} now={now} />)}</div>
         )}
@@ -78,7 +78,7 @@ export default function Me() {
 
       {discounts.length > 0 && (
         <section>
-          <h2 className="section-title">Your discounts</h2>
+          <h2 className="section-title">Discounts you’ve unlocked</h2>
           <ul className="simple-list">
             {discounts.map((d) => (
               <li key={d.id}>
@@ -92,14 +92,15 @@ export default function Me() {
 
       {past.length > 0 && (
         <section>
-          <h2 className="section-title">Past</h2>
+          <h2 className="section-title">Past plans</h2>
           <div className="list">{past.slice(0, 5).map((p) => <PlanCard key={p.id} plan={p} now={now} />)}</div>
         </section>
       )}
 
       <section className="menu">
+        <Link to="/amigos">Amigos and profile settings</Link>
         <Link to="/safety">Safety &amp; privacy</Link>
-        {profile?.is_admin && <Link to="/admin">Admin &amp; test tools</Link>}
+        {profile?.is_admin && <Link to="/admin">Admin tools</Link>}
         <button className="btn btn-text danger" onClick={signOut}>Sign out</button>
       </section>
     </>

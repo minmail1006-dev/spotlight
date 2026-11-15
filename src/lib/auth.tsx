@@ -30,11 +30,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfile(null)
       return
     }
-    const { data } = await supabase
-      .from('profiles')
-      .select('id, display_name, is_admin, is_test_account, seed_key')
-      .eq('id', userId)
-      .maybeSingle()
+    const { data, error } = await supabase.rpc('get_my_profile')
+    if (error) {
+      console.error('Could not load profile:', error.message)
+      setProfile(null)
+      return
+    }
     setProfile(data as Profile | null)
   }, [])
 

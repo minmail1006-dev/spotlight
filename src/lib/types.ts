@@ -4,6 +4,7 @@ export type Profile = {
   is_admin: boolean
   is_test_account: boolean
   seed_key: string | null
+  discoverable: boolean
 }
 
 export type Venue = {

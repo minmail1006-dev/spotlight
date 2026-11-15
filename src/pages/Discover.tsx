@@ -57,25 +57,25 @@ export default function Discover() {
       <TopBar right={profile?.is_admin ? <Link to="/admin" className="pill">Admin</Link> : null} />
       <section className="hello">
         <h1 className="display">Hi {profile?.display_name ?? 'there'}</h1>
-        <p className="muted">What are you up for?</p>
+        <p className="muted">Anything happening?</p>
       </section>
 
       {!introSeen && (
         <section className="intro card">
-          <h2 className="section-title">How Spotlight works</h2>
+          <h2 className="section-title">A quick guide</h2>
           <ol className="steps">
-            <li><strong>Find a plan</strong> at a venue, or post your own.</li>
-            <li><strong>Join</strong> and see who else is going.</li>
-            <li><strong>Check in</strong> at the venue with the code from the staff.</li>
-            <li>When <strong>2 or more</strong> of you check in, the <strong>discount unlocks</strong>.</li>
+            <li><strong>Pick a plan</strong> at a Spot, or put one up yourself.</li>
+            <li>Join and see who else is going.</li>
+            <li>Check in at the Spot with the code from the staff.</li>
+            <li>The discount applies once at least two people have checked in.</li>
           </ol>
-          <button className="btn btn-ghost btn-small" onClick={dismissIntro}>Got it</button>
+          <button className="btn btn-ghost btn-small" onClick={dismissIntro}>Makes sense</button>
         </section>
       )}
 
       {mine.length > 0 && (
         <section>
-          <h2 className="section-title">Your plans</h2>
+          <h2 className="section-title">You’re going to</h2>
           <div className="list">
             {mine.map((p) => (
               <PlanCard key={p.id} plan={p} now={now} />
@@ -86,16 +86,16 @@ export default function Discover() {
 
       <section>
         <div className="section-head">
-          <h2 className="section-title">Open plans</h2>
+          <h2 className="section-title">Plans coming up</h2>
           <span className="row-links">
             <Link to="/map" className="link">◎ Map</Link>
-            <Link to="/new" className="link">+ Post a plan</Link>
+            <Link to="/new" className="link">+ Put a plan up</Link>
           </span>
         </div>
         <div className="chips" role="group" aria-label="When">
           {(['all', 'now', 'today', 'week'] as When[]).map((w) => (
             <button key={w} className={`chip${when === w ? ' on' : ''}`} onClick={() => setWhen(w)}>
-              {w === 'all' ? 'Any time' : w === 'now' ? 'Soon' : w === 'today' ? 'Today' : 'This week'}
+              {w === 'all' ? 'Whenever' : w === 'now' ? 'Soon' : w === 'today' ? 'Today' : 'Next 7 days'}
             </button>
           ))}
         </div>
@@ -115,11 +115,11 @@ export default function Discover() {
         {loading ? (
           <Spinner />
         ) : error ? (
-          <Empty title="Could not load plans">{error}</Empty>
+          <Empty title="Plans aren’t loading">{error}</Empty>
         ) : filtered.length === 0 ? (
-          <Empty title="No plans match yet">
-            <p>Be the first. Someone nearby is probably thinking the same.</p>
-            <Link to="/new" className="btn btn-primary">Post a plan</Link>
+          <Empty title="Nothing here just now">
+            <p>Nothing fits those filters. Try another time or area.</p>
+            <Link to="/new" className="btn btn-primary">Put a plan up</Link>
           </Empty>
         ) : (
           <div className="list">

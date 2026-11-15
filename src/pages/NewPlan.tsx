@@ -81,7 +81,7 @@ export default function NewPlan() {
   async function submit(e: FormEvent) {
     e.preventDefault()
     setError(null)
-    if (!venue) return setError('Pick a venue.')
+    if (!venue) return setError('Pick a Spot.')
     if (title.trim().length < 3) return setError('Give your plan a short title.')
     if (!startsAt || startsAt.getTime() < Date.now() - 5 * 60_000) return setError('Pick a time in the future.')
     setBusy(true)
@@ -99,7 +99,7 @@ export default function NewPlan() {
       .single()
     setBusy(false)
     if (err) return setError(errorMessage(err))
-    toast('Your plan is live')
+    toast('Plan posted')
     nav(`/plan/${data.id}`, { replace: true })
   }
 
@@ -107,24 +107,24 @@ export default function NewPlan() {
 
   return (
     <>
-      <TopBar back title="Post a plan" />
+      <TopBar back title="New plan" />
       <form className="form" onSubmit={submit}>
         <label className="field">
-          <span>Where</span>
+          <span>Spot</span>
           <select value={venueSlug} onChange={(e) => setVenueSlug(e.target.value)} required>
-            <option value="">Choose a venue…</option>
+            <option value="">Select a Spot…</option>
             {venues.map((v) => (
               <option key={v.id} value={v.slug}>
                 {v.emoji} {v.name} ({v.neighborhood}) −{v.discount_pct}%
               </option>
             ))}
           </select>
-          <small className="muted">Plans are always at public partner venues.</small>
+          <small className="muted">Plans must be held at one of the public Spots listed here.</small>
         </label>
 
         <label className="field">
-          <span>What</span>
-          <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={80} placeholder="e.g. Watch Chelsea vs Arsenal" />
+          <span>What’s the plan?</span>
+          <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={80} placeholder="e.g. Watch the match" />
         </label>
         {venue && IDEAS[venue.category] && (
           <div className="chips">
@@ -139,9 +139,9 @@ export default function NewPlan() {
         <div className="field">
           <span>When</span>
           <div className="chips">
-            <button type="button" className="chip" onClick={() => quick('hour')}>In 1 hour</button>
-            <button type="button" className="chip" onClick={() => quick('tonight')}>Tonight 20:00</button>
-            <button type="button" className="chip" onClick={() => quick('tomorrow')}>Tomorrow 19:00</button>
+            <button type="button" className="chip" onClick={() => quick('hour')}>In an hour</button>
+            <button type="button" className="chip" onClick={() => quick('tonight')}>Tonight, 20:00</button>
+            <button type="button" className="chip" onClick={() => quick('tomorrow')}>Tomorrow, 19:00</button>
           </div>
           <div className="row">
             <select value={dateKey} onChange={(e) => setDateKey(e.target.value)} aria-label="Day">
@@ -151,12 +151,12 @@ export default function NewPlan() {
             </select>
             <input type="time" value={time} onChange={(e) => setTime(e.target.value)} aria-label="Time" step={300} required />
           </div>
-          <small className="muted">Copenhagen time. Check-in opens {RULES.checkinOpensMinBefore} min before.</small>
+          <small className="muted">Times are shown in Copenhagen time. Check-in opens {RULES.checkinOpensMinBefore} min before.</small>
         </div>
 
         {similar.length > 0 && (
           <div className="card notice">
-            <strong>There's already a plan here around then</strong>
+            <strong>There’s already a plan around that time</strong>
             {similar.map((p) => (
               <Link key={p.id} to={`/plan/${p.id}`} className="link-row">
                 {p.title} · {formatWhen(p.starts_at)} · {p.rsvps.length} going → Join instead
@@ -166,7 +166,7 @@ export default function NewPlan() {
         )}
 
         <div className="field">
-          <span>Group size (including you)</span>
+          <span>Group size, including you</span>
           <div className="stepper">
             <button type="button" onClick={() => setSize((s) => Math.max(RULES.minGroupSize, s - 1))} aria-label="Fewer">−</button>
             <output>{size}</output>
@@ -175,15 +175,15 @@ export default function NewPlan() {
         </div>
 
         <label className="field">
-          <span>Note (optional)</span>
-          <textarea value={note} onChange={(e) => setNote(e.target.value)} maxLength={300} rows={3} placeholder="Where to find you, what to expect…" />
+          <span>Add a note (optional)</span>
+          <textarea value={note} onChange={(e) => setNote(e.target.value)} maxLength={300} rows={3} placeholder="Anything people should know before they join?" />
         </label>
 
         {error && <p className="form-error">{error}</p>}
         <button className="btn btn-primary btn-block" disabled={busy}>
-          {busy ? 'Posting…' : 'Post plan'}
+          {busy ? 'Posting…' : 'Publish plan'}
         </button>
-        <p className="muted small center">Don't share phone numbers or addresses in plans. Meet inside the venue.</p>
+        <p className="muted small center">Keep phone numbers and private addresses out of plan notes. Meet inside the Spot.</p>
       </form>
     </>
   )
