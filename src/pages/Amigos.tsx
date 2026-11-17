@@ -66,7 +66,13 @@ export default function Amigos() {
     const { data, error } = await supabase.rpc('search_lighters', { p_query: query.trim() })
     setSearching(false)
     if (error) return toast(errorMessage(error))
-    setResults(((data ?? []) as Lighter[]).filter((p) => !amigos.some((a) => a.user_id === p.user_id)))
+    const found = ((data ?? []) as Lighter[]).filter((p) => !amigos.some((a) => a.user_id === p.user_id))
+    setResults(found)
+    const signed = await Promise.all(found.filter((p) => p.avatar_path).map(async (p) => {
+      const { data: signedData } = await supabase.storage.from('profile-photos').createSignedUrl(p.avatar_path!, 3600)
+      return [p.user_id, signedData?.signedUrl ?? ''] as const
+    }))
+    setPhotoUrls((old) => ({ ...old, ...Object.fromEntries(signed.filter(([, url]) => url)) }))
   }
 
   async function reportPhoto(userId: string) {
