@@ -11,7 +11,7 @@ const teal = '#397C78'
 const pink = '#D98D82'
 
 function drawing(id: string): ReactNode {
-  const line = { fill: 'none', stroke: ink, strokeWidth: 3.5, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
+  const line = { fill: 'none', stroke: ink, strokeWidth: 4, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
   switch (id) {
     case 'cycling': return <><circle cx="28" cy="66" r="15" {...line}/><circle cx="72" cy="66" r="15" {...line}/><path d="M28 66 43 42 55 66H28L47 66 72 66 58 39" {...line}/><circle cx="56" cy="22" r="6" fill={rust}/><path d="m53 31-10 13 12 9 9-13m-21 0-10-2" {...line}/></>
     case 'swimming': return <><circle cx="56" cy="29" r="8" fill={rust}/><path d="m48 38 14 7 12-8m-27 1-10 13 14 6 9-8" {...line}/><path d="M15 67q10-9 20 0t20 0 20 0 20 0M15 78q10-9 20 0t20 0 20 0 20 0" {...line}/></>
@@ -63,16 +63,15 @@ export function AvatarArtwork({ avatarId = 'cycling', size = 48, className = '' 
         </filter>
       </defs>
 
-      <rect x="2" y="2" width="92" height="92" rx="23" fill={bg} />
-      <path d="M9 69Q17 57 25 65M70 13Q81 18 86 29" fill="none" stroke={cream} strokeWidth="3" opacity=".65" strokeLinecap="round" />
-      <path d="M12 22l5-5m-1 12 7-7M75 78l6-6m-1 13 7-8" fill="none" stroke={ink} strokeWidth="1.4" opacity=".22" strokeLinecap="round" />
+      <path d="M48 3 59 7 72 5 79 16 89 24 86 38 94 49 86 61 88 76 75 83 67 93 52 89 39 94 29 84 15 81 13 67 3 57 8 43 3 30 16 21 23 8 37 10Z" fill={ink} opacity=".12" transform="translate(1.5 2)" />
+      <path d="M48 3 59 7 72 5 79 16 89 24 86 38 94 49 86 61 88 76 75 83 67 93 52 89 39 94 29 84 15 81 13 67 3 57 8 43 3 30 16 21 23 8 37 10Z" fill={bg} />
+      <path d="M8 48H2m92 0h-6M48 8V2m0 92v-6M17 17l-5-5m72 72-5-5M79 17l5-5M12 84l5-5" fill="none" stroke={ink} strokeWidth="1.8" opacity=".35" strokeLinecap="square" />
       <g filter={`url(#${printFilterId})`}>
         {drawing(avatarId ?? 'cycling')}
       </g>
-      <rect x="3" y="3" width="90" height="90" rx="22" fill={`url(#${grainId})`} opacity=".34" />
-      <rect x="5.5" y="5.5" width="85" height="85" rx="19" fill="none" stroke={ink} strokeWidth="1.15" opacity=".2" />
-      <circle cx="82" cy="15" r="2" fill={ink} opacity=".35" />
-      <circle cx="14" cy="81" r="2" fill={cream} opacity=".75" />
+      <path d="M48 5 58 9 71 7 77 18 87 26 84 39 91 49 84 60 86 73 74 80 66 89 52 85 40 90 30 81 17 78 15 66 7 56 11 43 7 31 19 23 25 11 38 13Z" fill={`url(#${grainId})`} opacity=".42" />
+      <path d="M48 5 58 9 71 7 77 18 87 26 84 39 91 49 84 60 86 73 74 80 66 89 52 85 40 90 30 81 17 78 15 66 7 56 11 43 7 31 19 23 25 11 38 13Z" fill="none" stroke={ink} strokeWidth="1.6" opacity=".42" strokeLinejoin="miter" />
+      <path d="M13 74 21 80m54-62 7 6" stroke={cream} strokeWidth="2" opacity=".7" />
     </svg>
   )
 }
