@@ -4,7 +4,7 @@ import { Avatar, Empty, Spinner, TopBar, useToast } from '../components/ui'
 import { useAuth } from '../lib/auth'
 import { errorMessage, supabase } from '../lib/supabase'
 
-type Lighter = { user_id: string; display_name: string; username?: string; avatar_path?: string | null }
+type Lighter = { user_id: string; display_name: string; username?: string; avatar_path?: string | null; avatar_id?: string }
 type RequestRow = {
   request_id: string
   user_id: string
@@ -13,6 +13,7 @@ type RequestRow = {
   created_at: string
   username?: string
   avatar_path?: string | null
+  avatar_id?: string
 }
 
 export default function Amigos() {
@@ -25,7 +26,6 @@ export default function Amigos() {
   const [loading, setLoading] = useState(true)
   const [searching, setSearching] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
-  const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({})
 
   const reload = useCallback(async () => {
     const [friendsResult, requestsResult] = await Promise.all([
@@ -36,12 +36,6 @@ export default function Amigos() {
     else setAmigos((friendsResult.data ?? []) as Lighter[])
     if (requestsResult.error) toast(errorMessage(requestsResult.error))
     else setRequests((requestsResult.data ?? []) as RequestRow[])
-    const people = [...((friendsResult.data ?? []) as Lighter[]), ...((requestsResult.data ?? []) as RequestRow[])]
-    const signed = await Promise.all(people.filter((p) => p.avatar_path).map(async (p) => {
-      const { data } = await supabase.storage.from('profile-photos').createSignedUrl(p.avatar_path!, 3600)
-      return [p.user_id, data?.signedUrl ?? ''] as const
-    }))
-    setPhotoUrls((old) => ({ ...old, ...Object.fromEntries(signed.filter(([, url]) => url)) }))
     setLoading(false)
   }, [toast])
 
@@ -68,17 +62,13 @@ export default function Amigos() {
     if (error) return toast(errorMessage(error))
     const found = ((data ?? []) as Lighter[]).filter((p) => !amigos.some((a) => a.user_id === p.user_id))
     setResults(found)
-    const signed = await Promise.all(found.filter((p) => p.avatar_path).map(async (p) => {
-      const { data: signedData } = await supabase.storage.from('profile-photos').createSignedUrl(p.avatar_path!, 3600)
-      return [p.user_id, signedData?.signedUrl ?? ''] as const
-    }))
-    setPhotoUrls((old) => ({ ...old, ...Object.fromEntries(signed.filter(([, url]) => url)) }))
+
   }
 
-  async function reportProfile(userId: string, contentType: 'username' | 'photo') {
-    const reason = window.prompt(contentType === 'photo' ? 'Why are you reporting this profile photo?' : 'Why are you reporting this username?')
+  async function reportProfile(userId: string) {
+    const reason = window.prompt('Why are you reporting this username?')
     if (!reason) return
-    const { error } = await supabase.rpc('report_profile', { p_user: userId, p_content_type: contentType, p_reason: reason.trim() })
+    const { error } = await supabase.rpc('report_profile', { p_user: userId, p_content_type: 'username', p_reason: reason.trim() })
     if (error) return toast(errorMessage(error))
     toast('Report sent to the Spotlight team')
   }
@@ -151,9 +141,9 @@ export default function Amigos() {
         </form>
         {results.length > 0 && <div className="amigos-list">
           {results.map((person) => <div className="amigo-row" key={person.user_id}>
-            <Avatar name={person.display_name} src={photoUrls[person.user_id]} />
+            <Avatar name={person.display_name} avatarId={person.avatar_id} />
             <div className="grow"><strong>{person.display_name}</strong><p className="muted small">@{person.username}</p></div>
-            <button className="btn btn-text btn-small" onClick={() => reportProfile(person.user_id, 'username')}>Report username</button>{person.avatar_path && <button className="btn btn-text btn-small" onClick={() => reportProfile(person.user_id, 'photo')}>Report photo</button>}
+            <button className="btn btn-text btn-small" onClick={() => reportProfile(person.user_id)}>Report username</button>
             <button className="btn btn-ghost btn-small" disabled={busyId === person.user_id} onClick={() => sendRequest(person.user_id)}>Add</button>
           </div>)}
         </div>}
@@ -164,7 +154,7 @@ export default function Amigos() {
         <h2 className="section-title">Received requests</h2>
         <div className="amigos-list">
           {requests.filter((r) => r.direction === 'received').map((request) => <div className="amigo-row request-row" key={request.request_id}>
-            <Avatar name={request.display_name} src={photoUrls[request.user_id]} />
+            <Avatar name={request.display_name} avatarId={request.avatar_id} />
             <div className="grow"><strong>{request.display_name}</strong><p className="muted small">@{request.username}</p></div>
             <button className="btn btn-primary btn-small" disabled={busyId === request.request_id} onClick={() => respond(request.request_id, true)}>Accept</button>
             <button className="btn btn-text btn-small" disabled={busyId === request.request_id} onClick={() => respond(request.request_id, false)}>Decline</button>
