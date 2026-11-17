@@ -14,7 +14,7 @@ alter table public.profiles
 -- Give existing accounts stable, unique handles without changing display names.
 -- A numeric suffix is checked against every existing row, so even repeated names
 -- and pre-existing usernames cannot produce a duplicate during the backfill.
-do $
+do $$
 declare
   r record;
   base_name text;
@@ -45,7 +45,7 @@ begin
 
     update public.profiles set username = candidate where id = r.id;
   end loop;
-end $;
+end $$;
 
 alter table public.profiles alter column username set not null;
 alter table public.profiles
@@ -67,7 +67,7 @@ as $$
 $$;
 
 -- Replace reserved or blocked legacy handles with a checked, unique fallback.
-do $
+do $$
 declare
   r record;
   candidate text;
@@ -92,7 +92,7 @@ begin
 
     update public.profiles set username = candidate where id = r.id;
   end loop;
-end $;
+end $$;
 
 create unique index if not exists profiles_username_lower_unique
   on public.profiles (lower(username));
