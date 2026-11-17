@@ -4,7 +4,7 @@ import { Avatar, Empty, Spinner, TopBar, useToast } from '../components/ui'
 import { useAuth } from '../lib/auth'
 import { errorMessage, supabase } from '../lib/supabase'
 
-type Lighter = { user_id: string; display_name: string; username?: string; avatar_path?: string | null; avatar_url?: string | null }
+type Lighter = { user_id: string; display_name: string; username?: string; avatar_path?: string | null }
 type RequestRow = {
   request_id: string
   user_id: string
@@ -176,8 +176,8 @@ export default function Amigos() {
         <h2 className="section-title">Sent</h2>
         <div className="amigos-list">
           {requests.filter((r) => r.direction === 'sent').map((request) => <div className="amigo-row" key={request.request_id}>
-            <Avatar name={request.display_name} />
-            <span>{request.display_name}</span>
+            <Avatar name={request.display_name} src={photoUrls[request.user_id]} />
+            <div className="grow"><strong>{request.display_name}</strong><p className="muted small">@{request.username}</p></div>
             <span className="muted small">Waiting for a reply</span>
           </div>)}
         </div>
