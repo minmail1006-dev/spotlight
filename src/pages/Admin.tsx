@@ -9,7 +9,7 @@ import type { EventRow } from '../lib/types'
 type ProfileLite = { id: string; display_name: string; is_admin: boolean; seed_key: string | null }
 type ReportRow = { id: string; reason: string; details: string | null; created_at: string; plan: { title: string } | null; reporter: { display_name: string } | null }
 type PendingPhoto = { user_id: string; display_name: string; username: string; avatar_path: string; submitted_at: string }
-type PhotoReport = { report_id: string; user_id: string; display_name: string; username: string; reason: string; reporter_name: string; created_at: string }
+type ProfileReport = { report_id: string; user_id: string; display_name: string; username: string; content_type: 'username' | 'photo'; reason: string; reporter_name: string; created_at: string }
 
 function median(xs: number[]) {
   if (xs.length === 0) return null
@@ -27,7 +27,7 @@ export default function Admin() {
   const [codes, setCodes] = useState<{ venue_name: string; code: string }[]>([])
   const [reports, setReports] = useState<ReportRow[]>([])
   const [pendingPhotos, setPendingPhotos] = useState<PendingPhoto[]>([])
-  const [photoReports, setPhotoReports] = useState<PhotoReport[]>([])
+  const [profileReports, setProfileReports] = useState<ProfileReport[]>([])
   const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
@@ -39,7 +39,7 @@ export default function Admin() {
       supabase.rpc('get_venue_codes'),
       supabase.from('reports').select('id, reason, details, created_at, plan:plans(title), reporter:profiles!reports_reporter_id_fkey(display_name)').order('created_at', { ascending: false }),
       supabase.rpc('admin_list_pending_photos'),
-      supabase.rpc('admin_list_profile_photo_reports'),
+      supabase.rpc('admin_list_profile_reports'),
     ])
     setEvents((ev.data as EventRow[]) ?? [])
     setPeople(Object.fromEntries(((pr.data as ProfileLite[]) ?? []).map((p) => [p.id, p])))
@@ -47,7 +47,7 @@ export default function Admin() {
     setReports((rp.data as unknown as ReportRow[]) ?? [])
     const pending = (pendingResult.data ?? []) as PendingPhoto[]
     setPendingPhotos(pending)
-    setPhotoReports((photoReportResult.data ?? []) as PhotoReport[])
+    setProfileReports((photoReportResult.data ?? []) as ProfileReport[])
     const signed = await Promise.all(pending.map(async (p) => {
       const { data } = await supabase.storage.from('profile-photos').createSignedUrl(p.avatar_path, 3600)
       return [p.user_id, data?.signedUrl ?? ''] as const
@@ -123,8 +123,8 @@ export default function Admin() {
     await load()
   }
 
-  async function resolvePhotoReport(reportId: string) {
-    const { error } = await supabase.rpc('resolve_profile_photo_report', { p_report: reportId })
+  async function resolveProfileReport(reportId: string) {
+    const { error } = await supabase.rpc('resolve_profile_report', { p_report: reportId })
     if (error) return toast(errorMessage(error))
     await load()
   }
@@ -250,13 +250,13 @@ export default function Admin() {
       </section>
 
       <section className="card">
-        <h2 className="section-title">Photo reports ({photoReports.length})</h2>
-        {photoReports.length === 0 ? <p className="muted small">No open photo reports.</p> : (
+        <h2 className="section-title">Profile reports ({profileReports.length})</h2>
+        {profileReports.length === 0 ? <p className="muted small">No open profile reports.</p> : (
           <ul className="simple-list">
-            {photoReports.map((r) => <li key={r.report_id}>
-              <span><strong>{r.display_name} (@{r.username})</strong> · {r.reason}</span>
+            {profileReports.map((r) => <li key={r.report_id}>
+              <span><strong>{r.display_name} (@{r.username})</strong> · {r.content_type} · {r.reason}</span>
               <span className="muted small">Reported by {r.reporter_name} · {formatWhen(r.created_at)}</span>
-              <button className="btn btn-text btn-small" onClick={() => resolvePhotoReport(r.report_id)}>Mark reviewed</button>
+              <button className="btn btn-text btn-small" onClick={() => resolveProfileReport(r.report_id)}>Mark reviewed</button>
             </li>)}
           </ul>
         )}
