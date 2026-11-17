@@ -6,6 +6,7 @@ import { useAuth } from '../lib/auth'
 import { useNow, usePlans } from '../lib/hooks'
 import { errorMessage, supabase } from '../lib/supabase'
 import { formatWhen, planPhase } from '../lib/time'
+import { AVATARS } from '../lib/avatars'
 
 type MyRedemption = { id: string; code: string; discount_pct: number; created_at: string; plan_id: string; venue: { name: string } | null }
 
@@ -18,8 +19,6 @@ export default function Me() {
   const [name, setName] = useState(profile?.display_name ?? '')
   const [discounts, setDiscounts] = useState<MyRedemption[]>([])
   const [username, setUsername] = useState(profile?.username ?? '')
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
-  const [photoBusy, setPhotoBusy] = useState(false)
   const uid = session?.user.id
 
   useEffect(() => {
@@ -34,14 +33,7 @@ export default function Me() {
 
   useEffect(() => { setUsername(profile?.username ?? '') }, [profile?.username])
 
-  useEffect(() => {
-    let active = true
-    if (!profile?.avatar_path || profile.avatar_status !== 'approved') { setAvatarUrl(null); return }
-    supabase.storage.from('profile-photos').createSignedUrl(profile.avatar_path, 3600).then(({ data }) => {
-      if (active) setAvatarUrl(data?.signedUrl ?? null)
-    })
-    return () => { active = false }
-  }, [profile?.avatar_path, profile?.avatar_status])
+
 
   const mine = plans.filter((p) => p.rsvps.some((r) => r.user_id === uid))
   const upcoming = mine.filter((p) => planPhase(p, now) !== 'ended')
@@ -60,7 +52,7 @@ export default function Me() {
     <>
       <TopBar title="Me" />
       <section className="me-head">
-        <Avatar name={profile?.display_name ?? '?'} size={56} src={avatarUrl} />
+        <Avatar name={profile?.display_name ?? '?'} size={56} avatarId={profile?.avatar_id} />
         {editing ? (
           <div className="row grow">
             <input value={name} onChange={(e) => setName(e.target.value)} maxLength={40} aria-label="Display name" />
@@ -89,33 +81,21 @@ export default function Me() {
           }} disabled={!username.trim() || username.trim().toLowerCase() === profile?.username}>Save</button>
         </div>
         <p className="muted small">3–20 characters · letters, numbers and underscores. {profile?.username_change_count === 0 ? 'You can make your first change now.' : profile?.username_changed_at ? `Last changed ${formatWhen(profile.username_changed_at)}. Changes are limited to once every 30 days.` : ''}</p>
-        <h2 className="section-title">Profile photo</h2>
-        <p className="muted small">Photos are private until an admin approves them. JPG, PNG or WebP, up to 5 MB.</p>
-        <label className="btn btn-ghost btn-block">
-          {photoBusy ? 'Uploading…' : 'Choose a photo'}
-          <input type="file" accept="image/jpeg,image/png,image/webp" hidden disabled={photoBusy} onChange={async (e) => {
-            const file = e.target.files?.[0]
-            e.currentTarget.value = ''
-            if (!file || !uid) return
-            if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) return toast('Choose a JPG, PNG or WebP image.')
-            if (file.size > 5 * 1024 * 1024) return toast('Photo must be 5 MB or smaller.')
-            setPhotoBusy(true)
-            const ext = file.type === 'image/jpeg' ? 'jpg' : file.type === 'image/png' ? 'png' : 'webp'
-            const path = `${uid}/${crypto.randomUUID()}.${ext}`
-            const { error: uploadError } = await supabase.storage.from('profile-photos').upload(path, file, { contentType: file.type, upsert: false })
-            if (uploadError) { setPhotoBusy(false); return toast(errorMessage(uploadError)) }
-            const previousPath = profile?.avatar_path
-            const { error } = await supabase.rpc('submit_profile_photo', { p_path: path })
-            setPhotoBusy(false)
-            if (error) { await supabase.storage.from('profile-photos').remove([path]); return toast(errorMessage(error)) }
-            if (previousPath && previousPath !== path) await supabase.storage.from('profile-photos').remove([previousPath])
-            await refreshProfile()
-            toast('Photo submitted for review')
-          }} />
-        </label>
-        {profile?.avatar_status === 'pending' && <p className="muted small">Your photo is waiting for approval.</p>}
-        {profile?.avatar_status === 'rejected' && <p className="muted small">Your last photo was not approved. You can submit another.</p>}
-        {profile?.avatar_status === 'approved' && <p className="muted small">Your photo is approved and visible on your profile.</p>}
+        <h2 className="section-title">Choose your avatar</h2>
+        <p className="muted small">Pick a little Spotlight personality. You can change it whenever you like.</p>
+        <div className="avatar-picker" aria-label="Choose your avatar">
+          {AVATARS.map((avatar) => (
+            <button key={avatar.id} type="button" className={`avatar-choice ${profile?.avatar_id === avatar.id ? "is-selected" : ""}`} style={{ "--avatar-bg": avatar.color } as React.CSSProperties} aria-label={avatar.name} aria-pressed={profile?.avatar_id === avatar.id} onClick={async () => {
+              if (profile?.avatar_id === avatar.id) return
+              const { error } = await supabase.rpc('set_avatar', { p_avatar_id: avatar.id })
+              if (error) return toast(errorMessage(error))
+              await refreshProfile()
+              toast("Avatar updated!")
+            }}>
+              <span>{avatar.emoji}</span><small>{avatar.name}</small>
+            </button>
+          ))}
+        </div>
       </section>
 
       <section className="stats-row">
