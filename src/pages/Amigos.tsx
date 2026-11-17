@@ -4,13 +4,15 @@ import { Avatar, Empty, Spinner, TopBar, useToast } from '../components/ui'
 import { useAuth } from '../lib/auth'
 import { errorMessage, supabase } from '../lib/supabase'
 
-type Lighter = { user_id: string; display_name: string }
+type Lighter = { user_id: string; display_name: string; username?: string; avatar_path?: string | null; avatar_url?: string | null }
 type RequestRow = {
   request_id: string
   user_id: string
   display_name: string
   direction: 'received' | 'sent'
   created_at: string
+  username?: string
+  avatar_path?: string | null
 }
 
 export default function Amigos() {
@@ -23,6 +25,7 @@ export default function Amigos() {
   const [loading, setLoading] = useState(true)
   const [searching, setSearching] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
+  const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({})
 
   const reload = useCallback(async () => {
     const [friendsResult, requestsResult] = await Promise.all([
@@ -33,6 +36,12 @@ export default function Amigos() {
     else setAmigos((friendsResult.data ?? []) as Lighter[])
     if (requestsResult.error) toast(errorMessage(requestsResult.error))
     else setRequests((requestsResult.data ?? []) as RequestRow[])
+    const people = [...((friendsResult.data ?? []) as Lighter[]), ...((requestsResult.data ?? []) as RequestRow[])]
+    const signed = await Promise.all(people.filter((p) => p.avatar_path).map(async (p) => {
+      const { data } = await supabase.storage.from('profile-photos').createSignedUrl(p.avatar_path!, 3600)
+      return [p.user_id, data?.signedUrl ?? ''] as const
+    }))
+    setPhotoUrls((old) => ({ ...old, ...Object.fromEntries(signed.filter(([, url]) => url)) }))
     setLoading(false)
   }, [toast])
 
@@ -58,6 +67,14 @@ export default function Amigos() {
     setSearching(false)
     if (error) return toast(errorMessage(error))
     setResults(((data ?? []) as Lighter[]).filter((p) => !amigos.some((a) => a.user_id === p.user_id)))
+  }
+
+  async function reportPhoto(userId: string) {
+    const reason = window.prompt('Why are you reporting this profile photo?')
+    if (!reason) return
+    const { error } = await supabase.rpc('report_profile_photo', { p_user: userId, p_reason: reason.trim() })
+    if (error) return toast(errorMessage(error))
+    toast('Report sent to the Spotlight team')
   }
 
   async function sendRequest(userId: string) {
@@ -98,13 +115,13 @@ export default function Amigos() {
       <section className="amigos-intro">
         <p className="eyebrow">AMIGOS</p>
         <h1 className="display">Find people you know.</h1>
-        <p className="muted">Search by name to send an Amigo request.</p>
+        <p className="muted">Search by name or username to send an Amigo request.</p>
       </section>
 
       <section className="card amigos-discovery">
         <div className="amigos-toggle-copy">
           <strong>Show up in search</strong>
-          <p className="muted small">When this is on, other people can find you by your display name.</p>
+          <p className="muted small">When this is on, other people can find you by your first name or username.</p>
         </div>
         <button
           type="button"
@@ -123,13 +140,14 @@ export default function Amigos() {
           <h2 className="section-title">Find people</h2>
         </div>
         <form className="amigos-search" onSubmit={search}>
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by first name" aria-label="Search people" />
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by name or username" aria-label="Search people" />
           <button className="btn btn-primary btn-small" disabled={searching || query.trim().length < 2}>{searching ? 'Searching…' : 'Search'}</button>
         </form>
         {results.length > 0 && <div className="amigos-list">
           {results.map((person) => <div className="amigo-row" key={person.user_id}>
-            <Avatar name={person.display_name} />
-            <strong>{person.display_name}</strong>
+            <Avatar name={person.display_name} src={photoUrls[person.user_id]} />
+            <div className="grow"><strong>{person.display_name}</strong><p className="muted small">@{person.username}</p></div>
+            {person.avatar_path && <button className="btn btn-text btn-small" onClick={() => reportPhoto(person.user_id)}>Report photo</button>}
             <button className="btn btn-ghost btn-small" disabled={busyId === person.user_id} onClick={() => sendRequest(person.user_id)}>Add</button>
           </div>)}
         </div>}
@@ -140,8 +158,8 @@ export default function Amigos() {
         <h2 className="section-title">Received requests</h2>
         <div className="amigos-list">
           {requests.filter((r) => r.direction === 'received').map((request) => <div className="amigo-row request-row" key={request.request_id}>
-            <Avatar name={request.display_name} />
-            <strong>{request.display_name}</strong>
+            <Avatar name={request.display_name} src={photoUrls[request.user_id]} />
+            <div className="grow"><strong>{request.display_name}</strong><p className="muted small">@{request.username}</p></div>
             <button className="btn btn-primary btn-small" disabled={busyId === request.request_id} onClick={() => respond(request.request_id, true)}>Accept</button>
             <button className="btn btn-text btn-small" disabled={busyId === request.request_id} onClick={() => respond(request.request_id, false)}>Decline</button>
           </div>)}
@@ -168,8 +186,9 @@ export default function Amigos() {
           <Empty title="No Amigos yet">Search for someone above, or send them an invite.</Empty>
         ) : <div className="amigos-list">
           {amigos.map((person) => <div className="amigo-row" key={person.user_id}>
-            <Avatar name={person.display_name} />
-            <strong>{person.display_name}</strong>
+            <Avatar name={person.display_name} src={photoUrls[person.user_id]} />
+            <div className="grow"><strong>{person.display_name}</strong><p className="muted small">@{person.username}</p></div>
+            {person.avatar_path && <button className="btn btn-text btn-small" onClick={() => reportPhoto(person.user_id)}>Report photo</button>}
             <button className="btn btn-text btn-small danger" disabled={busyId === person.user_id} onClick={() => removeAmigo(person.user_id)}>Remove</button>
           </div>)}
         </div>}
