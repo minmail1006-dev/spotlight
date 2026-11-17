@@ -12,31 +12,45 @@ alter table public.profiles
     check (avatar_status in ('none', 'pending', 'approved', 'rejected'));
 
 -- Give existing accounts stable, unique handles without changing display names.
-do $$
+-- A numeric suffix is checked against every existing row, so even repeated names
+-- and pre-existing usernames cannot produce a duplicate during the backfill.
+do $
 declare
   r record;
   base_name text;
   candidate text;
+  suffix_number bigint;
+  suffix_text text;
 begin
-  for r in select id, display_name from public.profiles where username is null order by created_at, id loop
+  for r in
+    select id, display_name
+    from public.profiles
+    where username is null
+    order by created_at, id
+  loop
     base_name := lower(trim(both '_' from regexp_replace(coalesce(r.display_name, ''), '[^a-zA-Z0-9]+', '_', 'g')));
     if char_length(base_name) < 3 then base_name := 'user'; end if;
-    base_name := left(base_name, 13);
+    base_name := left(base_name, 20);
     candidate := base_name;
-    if exists (select 1 from public.profiles p where lower(p.username) = candidate) then
-      candidate := left(base_name, 11) || '_' || substr(replace(r.id::text, '-', ''), 1, 8);
-    end if;
+    suffix_number := 1;
+
+    while exists (
+      select 1 from public.profiles p
+      where lower(p.username) = candidate
+    ) loop
+      suffix_text := '_' || suffix_number::text;
+      candidate := left(base_name, 20 - char_length(suffix_text)) || suffix_text;
+      suffix_number := suffix_number + 1;
+    end loop;
+
     update public.profiles set username = candidate where id = r.id;
   end loop;
-end $$;
+end $;
 
 alter table public.profiles alter column username set not null;
 alter table public.profiles
   add constraint profiles_username_format
   check (username = lower(username) and username ~ '^[a-z0-9_]{3,20}$');
-create unique index if not exists profiles_username_lower_unique
-  on public.profiles (lower(username));
-
 create or replace function public.username_is_allowed(p_username text)
 returns boolean
 language sql immutable
@@ -52,10 +66,36 @@ as $$
   );
 $$;
 
--- Replace any legacy handles that are now reserved or match the basic blocklist.
-update public.profiles
-set username = 'user_' || substr(replace(id::text, '-', ''), 1, 8)
-where not public.username_is_allowed(username);
+-- Replace reserved or blocked legacy handles with a checked, unique fallback.
+do $
+declare
+  r record;
+  candidate text;
+  suffix_number bigint;
+begin
+  for r in
+    select id
+    from public.profiles
+    where not public.username_is_allowed(username)
+    order by created_at, id
+  loop
+    suffix_number := 1;
+    loop
+      candidate := 'user_' || suffix_number::text;
+      exit when public.username_is_allowed(candidate)
+        and not exists (
+          select 1 from public.profiles p
+          where lower(p.username) = candidate and p.id <> r.id
+        );
+      suffix_number := suffix_number + 1;
+    end loop;
+
+    update public.profiles set username = candidate where id = r.id;
+  end loop;
+end $;
+
+create unique index if not exists profiles_username_lower_unique
+  on public.profiles (lower(username));
 
 create or replace function public.handle_new_user()
 returns trigger
