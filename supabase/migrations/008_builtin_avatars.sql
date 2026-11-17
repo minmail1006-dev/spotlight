@@ -4,6 +4,11 @@ begin;
 alter table public.profiles
   add column if not exists avatar_id text not null default 'sauna';
 
+-- Normalize values from the earlier emoji-only draft before restricting the catalogue.
+update public.profiles
+set avatar_id = 'cycling'
+where avatar_id not in ('sauna','yoga','coffee','beer','cocktail','pastry','cooking','jazz','vinyl','dance','theatre','cinema','cycling','swimming','running','tennis','kayaking','climbing','gardening','dog','cat','camera','books','art','gaming','boardgames');
+
 alter table public.profiles
   drop constraint if exists profiles_avatar_id_allowed;
 alter table public.profiles
