@@ -153,7 +153,7 @@ export default function Amigos() {
           {results.map((person) => <div className="amigo-row" key={person.user_id}>
             <Avatar name={person.display_name} src={photoUrls[person.user_id]} />
             <div className="grow"><strong>{person.display_name}</strong><p className="muted small">@{person.username}</p></div>
-            <button className="btn btn-text btn-small" onClick={() => reportProfile(person.user_id, 'username')}>Report name</button>{person.avatar_path && <button className="btn btn-text btn-small" onClick={() => reportProfile(person.user_id, 'photo')}>Report photo</button>}
+            <button className="btn btn-text btn-small" onClick={() => reportProfile(person.user_id, 'username')}>Report username</button>{person.avatar_path && <button className="btn btn-text btn-small" onClick={() => reportProfile(person.user_id, 'photo')}>Report photo</button>}
             <button className="btn btn-ghost btn-small" disabled={busyId === person.user_id} onClick={() => sendRequest(person.user_id)}>Add</button>
           </div>)}
         </div>}
@@ -194,7 +194,7 @@ export default function Amigos() {
           {amigos.map((person) => <div className="amigo-row" key={person.user_id}>
             <Avatar name={person.display_name} src={photoUrls[person.user_id]} />
             <div className="grow"><strong>{person.display_name}</strong><p className="muted small">@{person.username}</p></div>
-            <button className="btn btn-text btn-small" onClick={() => reportProfile(person.user_id, 'username')}>Report name</button>{person.avatar_path && <button className="btn btn-text btn-small" onClick={() => reportProfile(person.user_id, 'photo')}>Report photo</button>}
+            <button className="btn btn-text btn-small" onClick={() => reportProfile(person.user_id, 'username')}>Report username</button>{person.avatar_path && <button className="btn btn-text btn-small" onClick={() => reportProfile(person.user_id, 'photo')}>Report photo</button>}
             <button className="btn btn-text btn-small danger" disabled={busyId === person.user_id} onClick={() => removeAmigo(person.user_id)}>Remove</button>
           </div>)}
         </div>}
