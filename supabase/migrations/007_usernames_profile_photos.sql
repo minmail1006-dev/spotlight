@@ -163,36 +163,58 @@ begin
 end;
 $$;
 
-create table if not exists public.profile_photo_reports (
+create table if not exists public.profile_reports (
   id uuid primary key default gen_random_uuid(),
   reporter_id uuid not null references public.profiles(id) on delete cascade,
   target_user_id uuid not null references public.profiles(id) on delete cascade,
+  content_type text not null check (content_type in ('username','photo')),
   reason text not null check (char_length(reason) between 3 and 300),
   status text not null default 'open' check (status in ('open','reviewed')),
   created_at timestamptz not null default now(),
-  constraint profile_photo_report_not_self check (reporter_id <> target_user_id)
+  constraint profile_report_not_self check (reporter_id <> target_user_id)
 );
-create unique index if not exists profile_photo_one_open_report
-  on public.profile_photo_reports (reporter_id, target_user_id) where status = 'open';
-alter table public.profile_photo_reports enable row level security;
-revoke all on public.profile_photo_reports from public, anon, authenticated;
+create unique index if not exists profile_one_open_report
+  on public.profile_reports (reporter_id, target_user_id, content_type) where status = 'open';
+alter table public.profile_reports enable row level security;
+revoke all on public.profile_reports from public, anon, authenticated;
 
-create or replace function public.report_profile_photo(p_user uuid, p_reason text)
-returns void
-language plpgsql security definer set search_path = ''
+create or replace function public.report_profile(p_user uuid, p_content_type text, p_reason text)
+returns void language plpgsql security definer set search_path = ''
 as $$
 begin
   if auth.uid() is null then raise exception 'Sign in required'; end if;
   if p_user is null or p_user = auth.uid() then raise exception 'Invalid profile'; end if;
+  if p_content_type not in ('username','photo') then raise exception 'Invalid report type'; end if;
   if length(trim(coalesce(p_reason,''))) < 3 or length(trim(p_reason)) > 300 then
     raise exception 'Please provide a short reason (3–300 characters).';
   end if;
-  if not exists (select 1 from public.profiles where id = p_user and avatar_status = 'approved') then
-    raise exception 'This profile has no approved photo to report.';
+  if not exists (select 1 from public.profiles where id = p_user and (p_content_type = 'username' or avatar_status = 'approved')) then
+    raise exception 'This profile content is not available to report.';
   end if;
-  insert into public.profile_photo_reports(reporter_id, target_user_id, reason)
-  values (auth.uid(), p_user, trim(p_reason))
-  on conflict (reporter_id, target_user_id) where status = 'open' do nothing;
+  insert into public.profile_reports(reporter_id, target_user_id, content_type, reason)
+  values (auth.uid(), p_user, p_content_type, trim(p_reason))
+  on conflict (reporter_id, target_user_id, content_type) where status = 'open' do nothing;
+end;
+$$;
+
+create or replace function public.admin_list_profile_reports()
+returns table(report_id uuid, user_id uuid, display_name text, username text, content_type text, reason text, reporter_name text, created_at timestamptz)
+language sql stable security definer set search_path = ''
+as $$
+  select r.id, p.id, p.display_name, p.username, r.content_type, r.reason, reporter.display_name, r.created_at
+  from public.profile_reports r
+  join public.profiles p on p.id = r.target_user_id
+  join public.profiles reporter on reporter.id = r.reporter_id
+  where public.is_admin() and r.status = 'open'
+  order by r.created_at desc;
+$$;
+
+create or replace function public.resolve_profile_report(p_report uuid)
+returns void language plpgsql security definer set search_path = ''
+as $$
+begin
+  if not public.is_admin() then raise exception 'Admins only'; end if;
+  update public.profile_reports set status = 'reviewed' where id = p_report and status = 'open';
 end;
 $$;
 
@@ -204,18 +226,6 @@ as $$
   from public.profiles p
   where public.is_admin() and p.avatar_status = 'pending' and p.avatar_path is not null
   order by p.avatar_submitted_at;
-$$;
-
-create or replace function public.admin_list_profile_photo_reports()
-returns table(report_id uuid, user_id uuid, display_name text, username text, reason text, reporter_name text, created_at timestamptz)
-language sql stable security definer set search_path = ''
-as $$
-  select r.id, p.id, p.display_name, p.username, r.reason, reporter.display_name, r.created_at
-  from public.profile_photo_reports r
-  join public.profiles p on p.id = r.target_user_id
-  join public.profiles reporter on reporter.id = r.reporter_id
-  where public.is_admin() and r.status = 'open'
-  order by r.created_at desc;
 $$;
 
 create or replace function public.review_profile_photo(p_user uuid, p_approve boolean)
@@ -231,30 +241,20 @@ begin
 end;
 $$;
 
-create or replace function public.resolve_profile_photo_report(p_report uuid)
-returns void
-language plpgsql security definer set search_path = ''
-as $$
-begin
-  if not public.is_admin() then raise exception 'Admins only'; end if;
-  update public.profile_photo_reports set status = 'reviewed' where id = p_report and status = 'open';
-end;
-$$;
-
 revoke all on function public.can_read_profile_photo(text) from public, anon;
 revoke all on function public.submit_profile_photo(text) from public, anon;
-revoke all on function public.report_profile_photo(uuid,text) from public, anon;
+revoke all on function public.report_profile(uuid,text,text) from public, anon;
 revoke all on function public.admin_list_pending_photos() from public, anon;
-revoke all on function public.admin_list_profile_photo_reports() from public, anon;
+revoke all on function public.admin_list_profile_reports() from public, anon;
 revoke all on function public.review_profile_photo(uuid,boolean) from public, anon;
-revoke all on function public.resolve_profile_photo_report(uuid) from public, anon;
+revoke all on function public.resolve_profile_report(uuid) from public, anon;
 grant execute on function public.can_read_profile_photo(text) to authenticated;
 grant execute on function public.submit_profile_photo(text) to authenticated;
-grant execute on function public.report_profile_photo(uuid,text) to authenticated;
+grant execute on function public.report_profile(uuid,text,text) to authenticated;
 grant execute on function public.admin_list_pending_photos() to authenticated;
-grant execute on function public.admin_list_profile_photo_reports() to authenticated;
+grant execute on function public.admin_list_profile_reports() to authenticated;
 grant execute on function public.review_profile_photo(uuid,boolean) to authenticated;
-grant execute on function public.resolve_profile_photo_report(uuid) to authenticated;
+grant execute on function public.resolve_profile_report(uuid) to authenticated;
 
 create or replace function public.get_my_profile()
 returns jsonb
