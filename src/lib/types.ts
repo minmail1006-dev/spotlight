@@ -8,6 +8,7 @@ export type Profile = {
   username: string
   username_change_count: number
   username_changed_at: string | null
+  avatar_id: string
   avatar_path: string | null
   avatar_status: 'none' | 'pending' | 'approved' | 'rejected'
 }
