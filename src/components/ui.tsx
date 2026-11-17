@@ -30,7 +30,7 @@ export function useToast() {
 
 /* ---------- Small building blocks ---------- */
 
-export function Avatar({ name, size = 32, ring }: { name: string; size?: number; ring?: boolean }) {
+export function Avatar({ name, size = 32, ring, src }: { name: string; size?: number; ring?: boolean; src?: string | null }) {
   const hue = [...name].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7)
   return (
     <span
@@ -38,7 +38,7 @@ export function Avatar({ name, size = 32, ring }: { name: string; size?: number;
       style={{ width: size, height: size, fontSize: size * 0.42, background: `hsl(${hue} 55% 42%)` }}
       aria-hidden
     >
-      {name.trim().charAt(0).toUpperCase()}
+      {src ? <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} /> : name.trim().charAt(0).toUpperCase()}
     </span>
   )
 }
