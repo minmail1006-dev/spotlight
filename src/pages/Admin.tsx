@@ -8,7 +8,6 @@ import type { EventRow } from '../lib/types'
 
 type ProfileLite = { id: string; display_name: string; is_admin: boolean; seed_key: string | null }
 type ReportRow = { id: string; reason: string; details: string | null; created_at: string; plan: { title: string } | null; reporter: { display_name: string } | null }
-type PendingPhoto = { user_id: string; display_name: string; username: string; avatar_path: string; submitted_at: string }
 type ProfileReport = { report_id: string; user_id: string; display_name: string; username: string; content_type: 'username' | 'photo'; reason: string; reporter_name: string; created_at: string }
 
 function median(xs: number[]) {
@@ -26,33 +25,22 @@ export default function Admin() {
   const [people, setPeople] = useState<Record<string, ProfileLite>>({})
   const [codes, setCodes] = useState<{ venue_name: string; code: string }[]>([])
   const [reports, setReports] = useState<ReportRow[]>([])
-  const [pendingPhotos, setPendingPhotos] = useState<PendingPhoto[]>([])
   const [profileReports, setProfileReports] = useState<ProfileReport[]>([])
-  const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
 
   const load = useCallback(async () => {
-    const [ev, pr, vc, rp, pendingResult, photoReportResult] = await Promise.all([
+    const [ev, pr, vc, rp, photoReportResult] = await Promise.all([
       supabase.from('events').select('*').order('created_at', { ascending: true }).limit(10000),
       supabase.rpc('admin_list_profiles'),
       supabase.rpc('get_venue_codes'),
       supabase.from('reports').select('id, reason, details, created_at, plan:plans(title), reporter:profiles!reports_reporter_id_fkey(display_name)').order('created_at', { ascending: false }),
-      supabase.rpc('admin_list_pending_photos'),
       supabase.rpc('admin_list_profile_reports'),
     ])
     setEvents((ev.data as EventRow[]) ?? [])
     setPeople(Object.fromEntries(((pr.data as ProfileLite[]) ?? []).map((p) => [p.id, p])))
     setCodes((vc.data as { venue_name: string; code: string }[]) ?? [])
     setReports((rp.data as unknown as ReportRow[]) ?? [])
-    const pending = (pendingResult.data ?? []) as PendingPhoto[]
-    setPendingPhotos(pending)
-    setProfileReports((photoReportResult.data ?? []) as ProfileReport[])
-    const signed = await Promise.all(pending.map(async (p) => {
-      const { data } = await supabase.storage.from('profile-photos').createSignedUrl(p.avatar_path, 3600)
-      return [p.user_id, data?.signedUrl ?? ''] as const
-    }))
-    setPhotoUrls(Object.fromEntries(signed.filter(([, url]) => url)))
     setLoading(false)
   }, [])
 
@@ -116,12 +104,6 @@ export default function Admin() {
     load()
   }
 
-  async function reviewPhoto(userId: string, approve: boolean) {
-    const { error } = await supabase.rpc('review_profile_photo', { p_user: userId, p_approve: approve })
-    if (error) return toast(errorMessage(error))
-    toast(approve ? 'Photo approved' : 'Photo rejected')
-    await load()
-  }
 
   async function resolveProfileReport(reportId: string) {
     const { error } = await supabase.rpc('resolve_profile_report', { p_report: reportId })
@@ -234,20 +216,7 @@ export default function Admin() {
         )}
       </section>
 
-      <section className="card">
-        <h2 className="section-title">Profile photo review ({pendingPhotos.length})</h2>
-        <p className="muted small">New photos stay private until approved. Check each image before approving it.</p>
-        {pendingPhotos.length === 0 ? <p className="muted small">No photos waiting for review.</p> : (
-          <div className="stack">
-            {pendingPhotos.map((photo) => <div className="amigo-row" key={photo.user_id}>
-              {photoUrls[photo.user_id] ? <img src={photoUrls[photo.user_id]} alt="Submitted profile" style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 8 }} /> : <span>Photo unavailable</span>}
-              <div className="grow"><strong>{photo.display_name}</strong><p className="muted small">@{photo.username} · {formatWhen(photo.submitted_at)}</p></div>
-              <button className="btn btn-primary btn-small" onClick={() => reviewPhoto(photo.user_id, true)}>Approve</button>
-              <button className="btn btn-text btn-small danger" onClick={() => reviewPhoto(photo.user_id, false)}>Reject</button>
-            </div>)}
-          </div>
-        )}
-      </section>
+
 
       <section className="card">
         <h2 className="section-title">Profile reports ({profileReports.length})</h2>
