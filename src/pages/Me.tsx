@@ -69,6 +69,7 @@ export default function Me() {
         ) : (
           <div className="grow">
             <h1 className="display small-display">{profile?.display_name}</h1>
+            {profile?.username && <p className="muted small">@{profile.username}</p>}
             <p className="muted small">{session?.user.email}{profile?.is_test_account && ' · test account'}</p>
           </div>
         )}
