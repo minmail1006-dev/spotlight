@@ -83,7 +83,7 @@ export default function Me() {
           <input value={username} onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, '').slice(0, 20))} maxLength={20} aria-label="Username" />
           <button className="btn btn-primary btn-small" onClick={async () => {
             const { error } = await supabase.rpc('set_username', { p_username: username.trim().toLowerCase() })
-            if (error) return toast(errorMessage(error))
+            if (error) return toast(error.message.toLowerCase().includes('duplicate key') ? 'That username is already taken. Try another.' : errorMessage(error))
             await refreshProfile()
             toast('Username saved')
           }} disabled={!username.trim() || username.trim().toLowerCase() === profile?.username}>Save</button>
