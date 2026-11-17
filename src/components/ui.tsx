@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { getAvatar } from '../lib/avatars'
 
 /* ---------- Toasts ---------- */
 
@@ -30,15 +31,11 @@ export function useToast() {
 
 /* ---------- Small building blocks ---------- */
 
-export function Avatar({ name, size = 32, ring, src }: { name: string; size?: number; ring?: boolean; src?: string | null }) {
-  const hue = [...name].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7)
+export function Avatar({ name, size = 32, ring, avatarId }: { name: string; size?: number; ring?: boolean; avatarId?: string | null }) {
+  const avatar = getAvatar(avatarId)
   return (
-    <span
-      className={`avatar${ring ? ' avatar-ring' : ''}`}
-      style={{ width: size, height: size, fontSize: size * 0.42, background: `hsl(${hue} 55% 42%)` }}
-      aria-hidden
-    >
-      {src ? <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} /> : name.trim().charAt(0).toUpperCase()}
+    <span className={`avatar spotlight-avatar${ring ? ' avatar-ring' : ''}`} style={{ width: size, height: size, fontSize: size * 0.58, background: avatar.color }} role="img" aria-label={`${name}'s ${avatar.name} avatar`}>
+      {avatar.emoji}
     </span>
   )
 }
