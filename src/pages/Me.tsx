@@ -6,7 +6,7 @@ import { useAuth } from '../lib/auth'
 import { useNow, usePlans } from '../lib/hooks'
 import { errorMessage, supabase } from '../lib/supabase'
 import { formatWhen, planPhase } from '../lib/time'
-import { AVATARS } from '../lib/avatars'
+import { AVATARS, AVATAR_CATEGORIES } from '../lib/avatars'
 
 type MyRedemption = { id: string; code: string; discount_pct: number; created_at: string; plan_id: string; venue: { name: string } | null }
 
@@ -83,17 +83,24 @@ export default function Me() {
         <p className="muted small">3–20 characters · letters, numbers and underscores. {profile?.username_change_count === 0 ? 'You can make your first change now.' : profile?.username_changed_at ? `Last changed ${formatWhen(profile.username_changed_at)}. Changes are limited to once every 30 days.` : ''}</p>
         <h2 className="section-title">Choose your avatar</h2>
         <p className="muted small">Pick a little Spotlight personality. You can change it whenever you like.</p>
-        <div className="avatar-picker" aria-label="Choose your avatar">
-          {AVATARS.map((avatar) => (
-            <button key={avatar.id} type="button" className={`avatar-choice ${profile?.avatar_id === avatar.id ? "is-selected" : ""}`} style={{ "--avatar-bg": avatar.color } as CSSProperties} aria-label={avatar.name} aria-pressed={profile?.avatar_id === avatar.id} onClick={async () => {
-              if (profile?.avatar_id === avatar.id) return
-              const { error } = await supabase.rpc('set_avatar', { p_avatar_id: avatar.id })
-              if (error) return toast(errorMessage(error))
-              await refreshProfile()
-              toast("Avatar updated!")
-            }}>
-              <span>{avatar.emoji}</span><small>{avatar.name}</small>
-            </button>
+        <div className="avatar-categories" aria-label="Choose an interest avatar">
+          {AVATAR_CATEGORIES.map((category) => (
+            <div className="avatar-category" key={category.id}>
+              <h3>{category.name}</h3>
+              <div className="avatar-picker">
+                {AVATARS.filter((avatar) => avatar.category === category.id).map((avatar) => (
+                  <button key={avatar.id} type="button" className={`avatar-choice ${profile?.avatar_id === avatar.id ? "is-selected" : ""}`} style={{ "--avatar-bg": avatar.color } as CSSProperties} aria-label={avatar.name} aria-pressed={profile?.avatar_id === avatar.id} onClick={async () => {
+                    if (profile?.avatar_id === avatar.id) return
+                    const { error } = await supabase.rpc('set_avatar', { p_avatar_id: avatar.id })
+                    if (error) return toast(errorMessage(error))
+                    await refreshProfile()
+                    toast(`Your vibe is now: ${avatar.name}!`)
+                  }}>
+                    <span>{avatar.emoji}</span><small>{avatar.name}</small>
+                  </button>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </section>
