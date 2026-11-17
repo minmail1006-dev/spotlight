@@ -21,7 +21,7 @@ export default function Safety() {
           your first name, username, any profile photo you submit, the plans you post or join, your check-ins and reports.
         </p>
         <p>
-          Other signed-in users can see your first name and username on your profile and on Plans you join. Approved profile photos are visible to signed-in users. Photos are kept private until reviewed. Your email is not shown to other users.
+          Other signed-in users can see your first name on Plans you join. Your username appears in Amigos search and connection lists when your profile is discoverable. Approved profile photos are visible to signed-in users; photos stay private until reviewed. Your email is not shown to other users.
         </p>
         <p>
           For the course evaluation we log what you do in the app (for example "joined a plan" or "checked in") with a
