@@ -41,6 +41,7 @@ export default function Admin() {
     setPeople(Object.fromEntries(((pr.data as ProfileLite[]) ?? []).map((p) => [p.id, p])))
     setCodes((vc.data as { venue_name: string; code: string }[]) ?? [])
     setReports((rp.data as unknown as ReportRow[]) ?? [])
+    setProfileReports((photoReportResult.data ?? []) as ProfileReport[])
     setLoading(false)
   }, [])
 
