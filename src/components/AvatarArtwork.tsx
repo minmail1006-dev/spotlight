@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useId, type ReactNode } from 'react'
 
 type Props = { avatarId?: string | null; size?: number; className?: string }
 
@@ -38,20 +38,40 @@ function drawing(id: string): ReactNode {
     case 'gaming': return <><path d="M25 38q-12 0-15 25-2 15 12 13l15-13h23l15 13q14 2 12-13-3-25-15-25Z" fill={teal} stroke={ink} strokeWidth="3.5"/><path d="M30 48v17m-8-8h16" {...line}/><circle cx="63" cy="53" r="4" fill={mustard}/><circle cx="73" cy="62" r="4" fill={rust}/></>
     case 'cinema': return <><rect x="18" y="30" width="62" height="44" rx="5" fill={ink}/><path d="M18 42h62M18 62h62" stroke={cream} strokeWidth="3"/><path d="m40 43 20 10-20 10Z" fill={mustard}/><path d="M28 30v12m15-12v12m15-12v12m15-12v12M28 62v12m15-12v12m15-12v12m15-12v12" stroke={rust} strokeWidth="3"/></>
     case 'boardgames': return <><rect x="22" y="22" width="52" height="52" rx="8" fill={rust} stroke={ink} strokeWidth="3.5" transform="rotate(-8 48 48)"/><g fill={cream}><circle cx="37" cy="38" r="4"/><circle cx="59" cy="38" r="4"/><circle cx="48" cy="49" r="4"/><circle cx="37" cy="61" r="4"/><circle cx="59" cy="61" r="4"/></g></>
-    case 'theatre': return <><path d="M17 30q19-16 34 0v33q-15 17-34 0Zm28 0q19-16 34 0v33q-15 17-34 0Z" fill={mustard} stroke={ink} strokeWidth="3.5"/><path d="M27 44h5m9 0h-5m20 0h5m9 0h-5M27 57q7 8 14 0m14 0q7 8 14 0" {...line}/></>
     default: return <><path d="M25 70q22-47 46 0" {...line}/><circle cx="49" cy="35" r="15" fill={rust} stroke={ink} strokeWidth="3.5"/></>
   }
 }
 
 export function AvatarArtwork({ avatarId = 'cycling', size = 48, className = '' }: Props) {
   const bg = AVATARS.find((item) => item.id === avatarId)?.color ?? cream
+  const rawId = useId().replace(/:/g, '')
+  const grainId = `avatar-grain-${rawId}`
+  const printFilterId = `avatar-print-${rawId}`
+  const label = AVATARS.find((item) => item.id === avatarId)?.name ?? 'Spotlight interest'
+
   return (
-    <svg className={className} width={size} height={size} viewBox="0 0 96 96" role="img" aria-label={AVATARS.find((item) => item.id === avatarId)?.name ?? 'Spotlight interest'}>
-      <rect x="2" y="2" width="92" height="92" rx="24" fill={bg} />
-      <path d="M9 18q19-10 34-5M65 83q12-4 20-15" fill="none" stroke={cream} strokeWidth="2" opacity=".65" strokeLinecap="round"/>
-      {drawing(avatarId ?? 'cycling')}
-      <circle cx="82" cy="15" r="2" fill={ink} opacity=".35"/>
-      <circle cx="14" cy="81" r="2" fill={ink} opacity=".25"/>
+    <svg className={className} width={size} height={size} viewBox="0 0 96 96" role="img" aria-label={label}>
+      <defs>
+        <pattern id={grainId} width="8" height="8" patternUnits="userSpaceOnUse">
+          <circle cx="1.5" cy="2" r=".65" fill={ink} opacity=".28" />
+          <circle cx="6" cy="6" r=".45" fill={cream} opacity=".55" />
+        </pattern>
+        <filter id={printFilterId} x="-5%" y="-5%" width="110%" height="110%">
+          <feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="2" seed="7" result="paperNoise" />
+          <feDisplacementMap in="SourceGraphic" in2="paperNoise" scale=".55" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+      </defs>
+
+      <rect x="2" y="2" width="92" height="92" rx="23" fill={bg} />
+      <path d="M9 69Q17 57 25 65M70 13Q81 18 86 29" fill="none" stroke={cream} strokeWidth="3" opacity=".65" strokeLinecap="round" />
+      <path d="M12 22l5-5m-1 12 7-7M75 78l6-6m-1 13 7-8" fill="none" stroke={ink} strokeWidth="1.4" opacity=".22" strokeLinecap="round" />
+      <g filter={`url(#${printFilterId})`}>
+        {drawing(avatarId ?? 'cycling')}
+      </g>
+      <rect x="3" y="3" width="90" height="90" rx="22" fill={`url(#${grainId})`} opacity=".34" />
+      <rect x="5.5" y="5.5" width="85" height="85" rx="19" fill="none" stroke={ink} strokeWidth="1.15" opacity=".2" />
+      <circle cx="82" cy="15" r="2" fill={ink} opacity=".35" />
+      <circle cx="14" cy="81" r="2" fill={cream} opacity=".75" />
     </svg>
   )
 }
