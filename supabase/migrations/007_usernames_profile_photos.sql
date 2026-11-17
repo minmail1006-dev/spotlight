@@ -7,6 +7,7 @@ alter table public.profiles
   add column if not exists username_change_count integer not null default 0,
   add column if not exists username_changed_at timestamptz,
   add column if not exists avatar_path text,
+  add column if not exists avatar_submitted_at timestamptz,
   add column if not exists avatar_status text not null default 'none'
     check (avatar_status in ('none', 'pending', 'approved', 'rejected'));
 
@@ -158,7 +159,7 @@ begin
   if not exists (select 1 from storage.objects o where o.bucket_id = 'profile-photos' and o.name = p_path) then
     raise exception 'Photo upload not found';
   end if;
-  update public.profiles set avatar_path = p_path, avatar_status = 'pending' where id = auth.uid();
+  update public.profiles set avatar_path = p_path, avatar_submitted_at = now(), avatar_status = 'pending' where id = auth.uid();
 end;
 $$;
 
@@ -199,10 +200,10 @@ create or replace function public.admin_list_pending_photos()
 returns table(user_id uuid, display_name text, username text, avatar_path text, submitted_at timestamptz)
 language sql stable security definer set search_path = ''
 as $$
-  select p.id, p.display_name, p.username, p.avatar_path, p.created_at
+  select p.id, p.display_name, p.username, p.avatar_path, p.avatar_submitted_at
   from public.profiles p
   where public.is_admin() and p.avatar_status = 'pending' and p.avatar_path is not null
-  order by p.created_at;
+  order by p.avatar_submitted_at;
 $$;
 
 create or replace function public.admin_list_profile_photo_reports()
@@ -275,7 +276,8 @@ as $$
   from public.profiles p where p.id = auth.uid();
 $$;
 
-create or replace function public.search_lighters(p_query text default '')
+drop function if exists public.search_lighters(text);
+create function public.search_lighters(p_query text default '')
 returns table(user_id uuid, display_name text, username text, avatar_path text)
 language sql stable security definer set search_path = ''
 as $$
@@ -290,7 +292,8 @@ as $$
   order by p.display_name limit 30;
 $$;
 
-create or replace function public.list_amigos()
+drop function if exists public.list_amigos();
+create function public.list_amigos()
 returns table(user_id uuid, display_name text, username text, avatar_path text)
 language sql stable security definer set search_path = ''
 as $$
