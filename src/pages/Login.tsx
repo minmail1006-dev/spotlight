@@ -109,7 +109,7 @@ export default function Login() {
               <label className="check">
                 <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
                 <span>
-                  I understand Spotlight is a student prototype. My first name is shown to other users, and what I do in the app is logged to evaluate the test.{' '}
+                  I understand Spotlight is a student prototype. My first name and username are visible to other users. Profile photos are visible after review, and what I do in the app is logged to evaluate the test.{' '}
                   <Link to="/safety">Safety &amp; privacy</Link>
                 </span>
               </label>
