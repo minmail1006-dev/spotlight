@@ -1,4 +1,5 @@
 import { useId, type ReactNode } from 'react'
+import { AVATARS } from '../lib/avatars'
 
 type Props = { avatarId?: string | null; size?: number; className?: string }
 
