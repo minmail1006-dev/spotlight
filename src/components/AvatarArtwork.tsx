@@ -8,7 +8,7 @@ export function AvatarArtwork({ avatarId = 'cycling', size = 48, className = '' 
   return (
     <img
       className={className}
-      src={`/avatars/${avatar.id}.webp`}
+      src={`${import.meta.env.BASE_URL}avatars/${avatar.id}.webp`}
       width={size}
       height={size}
       alt={`${avatar.name} illustration`}
