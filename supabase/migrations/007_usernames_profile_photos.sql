@@ -45,9 +45,9 @@ as $$
   select coalesce(
     lower(p_username) ~ '^[a-z0-9_]{3,20}$'
     and lower(p_username) <> all (array[
-      'admin','administrator','support','spotlight','moderator','staff',
-      'fuck','shit','bitch','bastard','asshole','nigger','faggot'
-    ]::text[]),
+      'admin','administrator','support','spotlight','moderator','staff'
+    ]::text[])
+    and regexp_replace(lower(p_username), '_', '', 'g') !~ '(fuck|shit|bitch|bastard|asshole|nigger|faggot|cunt|whore)',
     false
   );
 $$;
