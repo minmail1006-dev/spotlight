@@ -166,7 +166,7 @@ export default function Amigos() {
         <h2 className="section-title">Sent</h2>
         <div className="amigos-list">
           {requests.filter((r) => r.direction === 'sent').map((request) => <div className="amigo-row" key={request.request_id}>
-            <Avatar name={request.display_name} src={photoUrls[request.user_id]} />
+            <Avatar name={request.display_name} avatarId={request.avatar_id} />
             <div className="grow"><strong>{request.display_name}</strong><p className="muted small">@{request.username}</p></div>
             <span className="muted small">Waiting for a reply</span>
           </div>)}
@@ -182,9 +182,9 @@ export default function Amigos() {
           <Empty title="No Amigos yet">Search for someone above, or send them an invite.</Empty>
         ) : <div className="amigos-list">
           {amigos.map((person) => <div className="amigo-row" key={person.user_id}>
-            <Avatar name={person.display_name} src={photoUrls[person.user_id]} />
+            <Avatar name={person.display_name} avatarId={person.avatar_id} />
             <div className="grow"><strong>{person.display_name}</strong><p className="muted small">@{person.username}</p></div>
-            <button className="btn btn-text btn-small" onClick={() => reportProfile(person.user_id, 'username')}>Report username</button>{person.avatar_path && <button className="btn btn-text btn-small" onClick={() => reportProfile(person.user_id, 'photo')}>Report photo</button>}
+            <button className="btn btn-text btn-small" onClick={() => reportProfile(person.user_id)}>Report username</button>
             <button className="btn btn-text btn-small danger" disabled={busyId === person.user_id} onClick={() => removeAmigo(person.user_id)}>Remove</button>
           </div>)}
         </div>}
