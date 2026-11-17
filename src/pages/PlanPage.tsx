@@ -131,15 +131,15 @@ function PlanView({ plan }: { plan: Plan }) {
       {phase === 'ended' && !redemption && <div className="card notice">This plan has ended.</div>}
 
       {!going && phase !== 'cancelled' && phase !== 'ended' && (
-        <button className="btn btn-primary btn-block btn-big" disabled={busy || full} onClick={() => rpc('join_plan', "You're in! See you there")}>
+        <button className="btn btn-primary btn-block btn-big" disabled={busy || full} onClick={() => rpc('join_plan', "You’ve joined the plan")}>
           {full ? 'This plan is full' : `Join plan · ${plan.max_size - plan.rsvps.length} spot${plan.max_size - plan.rsvps.length === 1 ? '' : 's'} left`}
         </button>
       )}
 
       {going && phase === 'upcoming' && (
         <div className="card notice">
-          <strong>You're going.</strong> Check-in opens at {formatTime(checkinOpensAt(plan))}
-          {' '}({relative(checkinOpensAt(plan).toISOString(), now)}). Go to {plan.venue.name} and ask the staff for the Spotlight code.
+          <strong>You’re on the list.</strong> Check-in opens at {formatTime(checkinOpensAt(plan))}
+          {' '}({relative(checkinOpensAt(plan).toISOString(), now)}). Go to {plan.venue.name} and ask the team for the check-in code.
         </div>
       )}
 
@@ -153,7 +153,7 @@ function PlanView({ plan }: { plan: Plan }) {
       {going && checkedIn && !redemption && phase !== 'cancelled' && (
         limitReached ? (
           <div className="card notice">
-            You're checked in. You've already used a discount at {plan.venue.name} today (max one per venue per day), but enjoy the company!
+            You're checked in. You've already used a discount at {plan.venue.name} today (max one per Spot per day), but enjoy the company!
           </div>
         ) : (
           <div className="card waiting">
@@ -162,9 +162,9 @@ function PlanView({ plan }: { plan: Plan }) {
                 <span key={i} className={i < checkedInCount ? 'on' : ''} />
               ))}
             </div>
-            <p><strong>You're checked in!</strong></p>
+            <p><strong>You’re checked in.</strong></p>
             <p className="muted">
-              The discount unlocks when {RULES.minPeopleForDiscount - checkedInCount} more {RULES.minPeopleForDiscount - checkedInCount === 1 ? 'person checks' : 'people check'} in. This page updates by itself.
+              The discount unlocks when {RULES.minPeopleForDiscount - checkedInCount} more {RULES.minPeopleForDiscount - checkedInCount === 1 ? 'person checks' : 'people check'} in. We’ll update this when someone else checks in.
             </p>
           </div>
         )
@@ -175,7 +175,7 @@ function PlanView({ plan }: { plan: Plan }) {
       {/* ---------- Secondary actions ---------- */}
       <div className="secondary-actions">
         {going && !isHost && !checkedIn && phase !== 'ended' && phase !== 'cancelled' && (
-          <button className="btn btn-text" disabled={busy} onClick={() => rpc('leave_plan', 'You left the plan')}>Leave plan</button>
+          <button className="btn btn-text" disabled={busy} onClick={() => rpc('leave_plan', 'You’ve left the plan')}>Leave plan</button>
         )}
         {isHost && phase !== 'ended' && phase !== 'cancelled' && (
           <button className="btn btn-text danger" disabled={busy} onClick={() => {
@@ -184,7 +184,7 @@ function PlanView({ plan }: { plan: Plan }) {
         )}
         <button className="btn btn-text" onClick={() => setReportOpen(true)}>Report</button>
       </div>
-      <p className="muted small center safety-line">Meet inside the venue. <Link to="/safety">Safety tips</Link></p>
+      <p className="muted small center safety-line">Meet inside the Spot. <Link to="/safety">Safety tips</Link></p>
 
       <ReportSheet open={reportOpen} onClose={() => setReportOpen(false)} plan={plan} />
     </>
@@ -213,7 +213,7 @@ function CheckinBox({ plan, onResult }: { plan: Plan; onResult: (r: CheckinResul
   return (
     <form className="card checkin" onSubmit={submit}>
       <h2 className="section-title">At {plan.venue.name}? Check in</h2>
-      <p className="muted small">Ask the staff for today's Spotlight code (or find it on the table card).</p>
+      <p className="muted small">Ask the team for the check-in code. You’ll find it on the table card.</p>
       <div className="row">
         <input
           className="code-input"
@@ -223,7 +223,7 @@ function CheckinBox({ plan, onResult }: { plan: Plan; onResult: (r: CheckinResul
           inputMode="text"
           autoCapitalize="characters"
           autoComplete="off"
-          aria-label="Venue code"
+          aria-label="Spot code"
         />
         <button className="btn btn-primary" disabled={busy || code.length < 4}>{busy ? '…' : 'Check in'}</button>
       </div>
@@ -248,7 +248,7 @@ function Ticket({ plan, redemption }: { plan: Plan; redemption: Redemption }) {
       <p className="ticket-clock">
         <span className="pulse" aria-hidden /> Live · {clock}
       </p>
-      <p className="ticket-foot">Show this screen to the staff. Valid today only.</p>
+      <p className="ticket-foot">Show this screen to the team. Valid today only.</p>
     </section>
   )
 }
@@ -282,7 +282,7 @@ function ReportSheet({ open, onClose, plan }: { open: boolean; onClose: () => vo
     setBusy(false)
     if (error) return toast(errorMessage(error))
     logEvent('report_filed', { plan_id: plan.id, meta: { reason } })
-    toast('Thanks. Our team will look at this.')
+    toast('Report sent. We’ll review it.')
     setReason('')
     setDetails('')
     onClose()
@@ -297,7 +297,7 @@ function ReportSheet({ open, onClose, plan }: { open: boolean; onClose: () => vo
             <span>{r.label}</span>
           </label>
         ))}
-        <textarea value={details} onChange={(e) => setDetails(e.target.value)} rows={3} maxLength={500} placeholder="Anything we should know? (optional)" />
+        <textarea value={details} onChange={(e) => setDetails(e.target.value)} rows={3} maxLength={500} placeholder="Add a detail if useful (optional)" />
         <p className="muted small">If you are in danger, call 112.</p>
         <button className="btn btn-primary btn-block" disabled={!reason || busy}>Send report</button>
       </form>

@@ -12,6 +12,7 @@ export default function Login() {
   const from = (loc.state as { from?: string } | null)?.from ?? '/'
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [name, setName] = useState('')
+  const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [over18, setOver18] = useState(false)
@@ -26,9 +27,10 @@ export default function Login() {
     e.preventDefault()
     setError(null)
     if (mode === 'signup') {
-      if (!over18) return setError('You need to be 18 or over to use Spotlight.')
-      if (!consent) return setError('Please accept how test data is used.')
-      if (name.trim().length < 1) return setError('Tell us what to call you.')
+      if (!over18) return setError('You must be 18 or over to use Spotlight.')
+      if (!consent) return setError('Please read and accept the test data notice.')
+      if (name.trim().length < 1) return setError('Enter your first name.')
+      if (!/^[a-zA-Z0-9_]{3,20}$/.test(username.trim())) return setError('Username must be 3–20 characters: letters, numbers or underscores.')
     }
     setBusy(true)
     const res =
@@ -37,12 +39,12 @@ export default function Login() {
         : await supabase.auth.signUp({
             email: email.trim(),
             password,
-            options: { data: { display_name: name.trim(), over18: true, consent: true } },
+            options: { data: { display_name: name.trim(), username: username.trim().toLowerCase(), over18: true, consent: true } },
           })
     setBusy(false)
-    if (res.error) return setError(errorMessage(res.error))
+    if (res.error) return setError(res.error.message.toLowerCase().includes('profiles_username_lower_unique') || res.error.message.toLowerCase().includes('duplicate key') ? 'That username is already taken. Try another.' : errorMessage(res.error))
     if (mode === 'signup' && !res.data.session) {
-      return setError('Account created. Check your email to confirm, then sign in.')
+      return setError('Check your inbox for the confirmation email, then sign in.')
     }
     nav(from, { replace: true })
   }
@@ -62,7 +64,7 @@ export default function Login() {
         <div className="login-beam" aria-hidden />
         <h1 className="login-logo">Spotlight</h1>
         <p className="login-tagline">
-          Spontaneous plans at great places in Copenhagen, with people who are up for it too.
+          Find something to do in Copenhagen. Join a plan or start one.
         </p>
       </div>
 
@@ -78,10 +80,17 @@ export default function Login() {
 
         <form onSubmit={submit} className="form">
           {mode === 'signup' && (
-            <label className="field">
-              <span>First name</span>
-              <input value={name} onChange={(e) => setName(e.target.value)} maxLength={40} autoComplete="given-name" placeholder="What should people call you?" />
-            </label>
+            <>
+              <label className="field">
+                <span>First name</span>
+                <input value={name} onChange={(e) => setName(e.target.value)} maxLength={40} autoComplete="given-name" placeholder="Your first name" />
+              </label>
+              <label className="field">
+                <span>Username</span>
+                <input value={username} onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, '').slice(0, 20))} maxLength={20} autoComplete="username" placeholder="e.g. alex_23" required />
+                <small className="muted">3–20 characters. Letters, numbers and underscores. You can change it once, then every 30 days.</small>
+              </label>
+            </>
           )}
           <label className="field">
             <span>Email</span>
@@ -100,7 +109,7 @@ export default function Login() {
               <label className="check">
                 <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
                 <span>
-                  I understand Spotlight is a student prototype. My first name is shown to other users, and what I do in the app is logged to evaluate the test.{' '}
+                  I understand Spotlight is a student prototype. My first name and username are visible to other users. Profile photos are visible after review, and what I do in the app is logged to evaluate the test.{' '}
                   <Link to="/safety">Safety &amp; privacy</Link>
                 </span>
               </label>
@@ -108,14 +117,14 @@ export default function Login() {
           )}
           {error && <p className="form-error">{error}</p>}
           <button className="btn btn-primary btn-block" disabled={busy}>
-            {busy ? 'One moment…' : mode === 'signin' ? 'Sign in' : 'Create account'}
+            {busy ? 'Please wait…' : mode === 'signin' ? 'Sign in' : 'Create account'}
           </button>
         </form>
       </div>
 
       <div className="login-card quick">
-        <h2 className="section-title">Quick login for testing</h2>
-        <p className="muted small">Fictional test accounts. Use a different one on each phone.</p>
+        <h2 className="section-title">Test accounts</h2>
+        <p className="muted small">For the app test. Use a different account on each phone.</p>
         <div className="quick-grid">
           {TEST_ACCOUNTS.map((a) => (
             <button key={a.email} className="btn btn-ghost" onClick={() => quickLogin(a)} disabled={busy}>
@@ -126,7 +135,7 @@ export default function Login() {
       </div>
 
       <p className="login-foot">
-        <Link to="/safety">Safety &amp; privacy</Link> · Student MVP · All venues are fictional
+        <Link to="/safety">Safety &amp; privacy</Link> · Student project · Spots shown here are fictional
       </p>
     </div>
   )

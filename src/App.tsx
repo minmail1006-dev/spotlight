@@ -7,6 +7,7 @@ import Admin from './pages/Admin'
 import Discover from './pages/Discover'
 import Login from './pages/Login'
 import Me from './pages/Me'
+import Amigos from './pages/Amigos'
 import NewPlan from './pages/NewPlan'
 import PlanPage from './pages/PlanPage'
 import Safety from './pages/Safety'
@@ -41,7 +42,10 @@ function Layout() {
           <span className="tab-post-btn" aria-hidden>+</span>Post plan
         </NavLink>
         <NavLink to="/venues" className="tab">
-          <span className="tab-icon" aria-hidden>⌂</span>Venues
+          <span className="tab-icon" aria-hidden>⌂</span>Spots
+        </NavLink>
+        <NavLink to="/amigos" className="tab">
+          <span className="tab-icon" aria-hidden>♡</span>Amigos
         </NavLink>
         <NavLink to="/me" className="tab">
           <span className="tab-icon" aria-hidden>☺</span>Me
@@ -70,6 +74,7 @@ export default function App() {
                 <Route path="/venue/:slug" element={<VenuePage />} />
                 <Route path="/new" element={<NewPlan />} />
                 <Route path="/plan/:id" element={<PlanPage />} />
+                <Route path="/amigos" element={<Amigos />} />
                 <Route path="/me" element={<Me />} />
                 <Route path="/admin" element={<Admin />} />
               </Route>

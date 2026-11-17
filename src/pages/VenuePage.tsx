@@ -18,7 +18,7 @@ export default function VenuePage() {
   }, [venue])
 
   if (loading) return <Spinner />
-  if (!venue) return <Empty title="Venue not found" />
+  if (!venue) return <Empty title="Spot not found" />
 
   const upcoming = plans.filter((p) => planPhase(p, now) !== 'ended')
 
@@ -39,8 +39,8 @@ export default function VenuePage() {
         <div className="offer-pct">−{venue.discount_pct}%</div>
         <div>
           <p className="offer-text">{venue.offer}</p>
-          <p className="muted small">Unlocks when 2 or more Spotlight users on the same plan check in here.</p>
-          {venue.quiet_hours && <p className="muted small">Best times: {venue.quiet_hours}</p>}
+          <p className="muted small">The discount is available when at least two people on the same plan check in.</p>
+          {venue.quiet_hours && <p className="muted small">Quieter hours: {venue.quiet_hours}</p>}
         </div>
       </section>
 
@@ -48,22 +48,22 @@ export default function VenuePage() {
         <p>{venue.description}</p>
         <p className="muted small">
           {venue.address}
-          {venue.is_fictional && <span className="pill pill-demo">Fictional demo venue</span>}
+          {venue.is_fictional && <span className="pill pill-demo">Demo place</span>}
         </p>
         {venue.lat != null && (
-          <Link to={`/map?venue=${venue.slug}`} className="link">◎ Show on map</Link>
+          <Link to={`/map?venue=${venue.slug}`} className="link">Show on map</Link>
         )}
       </section>
 
       <section>
         <div className="section-head">
-          <h2 className="section-title">Plans here</h2>
+          <h2 className="section-title">Plans at this Spot</h2>
         </div>
         {plansLoading ? (
           <Spinner />
         ) : upcoming.length === 0 ? (
-          <Empty title="No plans here yet">
-            <p>Post one and others can join you.</p>
+          <Empty title="No plans at this Spot yet">
+            <p>Start a plan here and others can join.</p>
           </Empty>
         ) : (
           <div className="list">
@@ -73,7 +73,7 @@ export default function VenuePage() {
           </div>
         )}
         <Link to={`/new?venue=${venue.slug}`} className="btn btn-primary btn-block">
-          Post a plan at {venue.name}
+          Start a plan at {venue.name}
         </Link>
       </section>
     </>

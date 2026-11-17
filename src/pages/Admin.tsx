@@ -8,6 +8,7 @@ import type { EventRow } from '../lib/types'
 
 type ProfileLite = { id: string; display_name: string; is_admin: boolean; seed_key: string | null }
 type ReportRow = { id: string; reason: string; details: string | null; created_at: string; plan: { title: string } | null; reporter: { display_name: string } | null }
+type ProfileReport = { report_id: string; user_id: string; display_name: string; username: string; content_type: 'username' | 'photo'; reason: string; reporter_name: string; created_at: string }
 
 function median(xs: number[]) {
   if (xs.length === 0) return null
@@ -24,20 +25,23 @@ export default function Admin() {
   const [people, setPeople] = useState<Record<string, ProfileLite>>({})
   const [codes, setCodes] = useState<{ venue_name: string; code: string }[]>([])
   const [reports, setReports] = useState<ReportRow[]>([])
+  const [profileReports, setProfileReports] = useState<ProfileReport[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
 
   const load = useCallback(async () => {
-    const [ev, pr, vc, rp] = await Promise.all([
+    const [ev, pr, vc, rp, photoReportResult] = await Promise.all([
       supabase.from('events').select('*').order('created_at', { ascending: true }).limit(10000),
-      supabase.from('profiles').select('id, display_name, is_admin, seed_key'),
+      supabase.rpc('admin_list_profiles'),
       supabase.rpc('get_venue_codes'),
       supabase.from('reports').select('id, reason, details, created_at, plan:plans(title), reporter:profiles!reports_reporter_id_fkey(display_name)').order('created_at', { ascending: false }),
+      supabase.rpc('admin_list_profile_reports'),
     ])
     setEvents((ev.data as EventRow[]) ?? [])
     setPeople(Object.fromEntries(((pr.data as ProfileLite[]) ?? []).map((p) => [p.id, p])))
     setCodes((vc.data as { venue_name: string; code: string }[]) ?? [])
     setReports((rp.data as unknown as ReportRow[]) ?? [])
+    setProfileReports((photoReportResult.data ?? []) as ProfileReport[])
     setLoading(false)
   }, [])
 
@@ -99,6 +103,13 @@ export default function Admin() {
     if (error) return toast(errorMessage(error))
     toast(`Reset done. ${(data as { seeded_plans: number }).seeded_plans} sample plans added.`)
     load()
+  }
+
+
+  async function resolveProfileReport(reportId: string) {
+    const { error } = await supabase.rpc('resolve_profile_report', { p_report: reportId })
+    if (error) return toast(errorMessage(error))
+    await load()
   }
 
   function downloadCsv() {
@@ -173,7 +184,7 @@ export default function Admin() {
       </section>
 
       <section className="card">
-        <h2 className="section-title">Venue check-in codes</h2>
+        <h2 className="section-title">Spot check-in codes</h2>
         <p className="muted small">In real life staff would give these out. In the test, the facilitator does.</p>
         <table className="table codes">
           <tbody>
@@ -202,6 +213,21 @@ export default function Admin() {
                 <span className="muted small">{r.reporter?.display_name} · {formatWhen(r.created_at)}</span>
               </li>
             ))}
+          </ul>
+        )}
+      </section>
+
+
+
+      <section className="card">
+        <h2 className="section-title">Profile reports ({profileReports.length})</h2>
+        {profileReports.length === 0 ? <p className="muted small">No open profile reports.</p> : (
+          <ul className="simple-list">
+            {profileReports.map((r) => <li key={r.report_id}>
+              <span><strong>{r.display_name} (@{r.username})</strong> · {r.content_type} · {r.reason}</span>
+              <span className="muted small">Reported by {r.reporter_name} · {formatWhen(r.created_at)}</span>
+              <button className="btn btn-text btn-small" onClick={() => resolveProfileReport(r.report_id)}>Mark reviewed</button>
+            </li>)}
           </ul>
         )}
       </section>

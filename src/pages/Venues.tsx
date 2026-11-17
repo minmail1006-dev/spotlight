@@ -10,8 +10,8 @@ export default function Venues() {
 
   return (
     <>
-      <TopBar title="Venues" />
-      <p className="muted lead">Partner venues give Spotlight users a discount when they show up together.</p>
+      <TopBar title="Spots" />
+      <p className="muted lead">Places to meet, have a drink or get something going.</p>
       {loading ? (
         <Spinner />
       ) : (
@@ -36,7 +36,7 @@ export default function Venues() {
           })}
         </div>
       )}
-      <p className="muted small center">All venues in this prototype are fictional.</p>
+      <p className="muted small center">The places shown here are part of the student test, not real partner venues.</p>
     </>
   )
 }
