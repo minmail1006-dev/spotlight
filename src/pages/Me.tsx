@@ -103,9 +103,11 @@ export default function Me() {
             const path = `${uid}/${crypto.randomUUID()}.${ext}`
             const { error: uploadError } = await supabase.storage.from('profile-photos').upload(path, file, { contentType: file.type, upsert: false })
             if (uploadError) { setPhotoBusy(false); return toast(errorMessage(uploadError)) }
+            const previousPath = profile?.avatar_path
             const { error } = await supabase.rpc('submit_profile_photo', { p_path: path })
             setPhotoBusy(false)
             if (error) { await supabase.storage.from('profile-photos').remove([path]); return toast(errorMessage(error)) }
+            if (previousPath && previousPath !== path) await supabase.storage.from('profile-photos').remove([previousPath])
             await refreshProfile()
             toast('Photo submitted for review')
           }} />
