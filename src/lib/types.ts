@@ -5,6 +5,11 @@ export type Profile = {
   is_test_account: boolean
   seed_key: string | null
   discoverable: boolean
+  username: string
+  username_change_count: number
+  username_changed_at: string | null
+  avatar_path: string | null
+  avatar_status: 'none' | 'pending' | 'approved' | 'rejected'
 }
 
 export type Venue = {
