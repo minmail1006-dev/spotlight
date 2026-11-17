@@ -75,10 +75,10 @@ export default function Amigos() {
     setPhotoUrls((old) => ({ ...old, ...Object.fromEntries(signed.filter(([, url]) => url)) }))
   }
 
-  async function reportPhoto(userId: string) {
-    const reason = window.prompt('Why are you reporting this profile photo?')
+  async function reportProfile(userId: string, contentType: 'username' | 'photo') {
+    const reason = window.prompt(contentType === 'photo' ? 'Why are you reporting this profile photo?' : 'Why are you reporting this username?')
     if (!reason) return
-    const { error } = await supabase.rpc('report_profile_photo', { p_user: userId, p_reason: reason.trim() })
+    const { error } = await supabase.rpc('report_profile', { p_user: userId, p_content_type: contentType, p_reason: reason.trim() })
     if (error) return toast(errorMessage(error))
     toast('Report sent to the Spotlight team')
   }
@@ -153,7 +153,7 @@ export default function Amigos() {
           {results.map((person) => <div className="amigo-row" key={person.user_id}>
             <Avatar name={person.display_name} src={photoUrls[person.user_id]} />
             <div className="grow"><strong>{person.display_name}</strong><p className="muted small">@{person.username}</p></div>
-            {person.avatar_path && <button className="btn btn-text btn-small" onClick={() => reportPhoto(person.user_id)}>Report photo</button>}
+            <button className="btn btn-text btn-small" onClick={() => reportProfile(person.user_id, 'username')}>Report name</button>{person.avatar_path && <button className="btn btn-text btn-small" onClick={() => reportProfile(person.user_id, 'photo')}>Report photo</button>}
             <button className="btn btn-ghost btn-small" disabled={busyId === person.user_id} onClick={() => sendRequest(person.user_id)}>Add</button>
           </div>)}
         </div>}
@@ -194,7 +194,7 @@ export default function Amigos() {
           {amigos.map((person) => <div className="amigo-row" key={person.user_id}>
             <Avatar name={person.display_name} src={photoUrls[person.user_id]} />
             <div className="grow"><strong>{person.display_name}</strong><p className="muted small">@{person.username}</p></div>
-            {person.avatar_path && <button className="btn btn-text btn-small" onClick={() => reportPhoto(person.user_id)}>Report photo</button>}
+            <button className="btn btn-text btn-small" onClick={() => reportProfile(person.user_id, 'username')}>Report name</button>{person.avatar_path && <button className="btn btn-text btn-small" onClick={() => reportProfile(person.user_id, 'photo')}>Report photo</button>}
             <button className="btn btn-text btn-small danger" disabled={busyId === person.user_id} onClick={() => removeAmigo(person.user_id)}>Remove</button>
           </div>)}
         </div>}
