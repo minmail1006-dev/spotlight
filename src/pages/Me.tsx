@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { PlanCard } from '../components/PlanCard'
 import { Avatar, Empty, TopBar, useToast } from '../components/ui'
@@ -85,7 +85,7 @@ export default function Me() {
         <p className="muted small">Pick a little Spotlight personality. You can change it whenever you like.</p>
         <div className="avatar-picker" aria-label="Choose your avatar">
           {AVATARS.map((avatar) => (
-            <button key={avatar.id} type="button" className={`avatar-choice ${profile?.avatar_id === avatar.id ? "is-selected" : ""}`} style={{ "--avatar-bg": avatar.color } as React.CSSProperties} aria-label={avatar.name} aria-pressed={profile?.avatar_id === avatar.id} onClick={async () => {
+            <button key={avatar.id} type="button" className={`avatar-choice ${profile?.avatar_id === avatar.id ? "is-selected" : ""}`} style={{ "--avatar-bg": avatar.color } as CSSProperties} aria-label={avatar.name} aria-pressed={profile?.avatar_id === avatar.id} onClick={async () => {
               if (profile?.avatar_id === avatar.id) return
               const { error } = await supabase.rpc('set_avatar', { p_avatar_id: avatar.id })
               if (error) return toast(errorMessage(error))
