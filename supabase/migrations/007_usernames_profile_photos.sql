@@ -50,7 +50,7 @@ as $$
     and regexp_replace(lower(p_username), '_', '', 'g') !~ '(fuck|shit|bitch|bastard|asshole|nigger|faggot|cunt|whore)',
     false
   );
-$;
+$$;
 
 -- Replace any legacy handles that are now reserved or match the basic blocklist.
 update public.profiles
