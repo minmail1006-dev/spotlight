@@ -367,3 +367,49 @@ button, input, select, textarea {
   letter-spacing: -0.02em;
   -webkit-text-stroke: 0.25px currentColor;
 }
+
+
+/* Built-in Spotlight avatar collection */
+.spotlight-avatar {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  border: 2px solid rgb(255 255 255 / 75%);
+  box-shadow: 0 2px 7px rgb(42 27 18 / 12%);
+  overflow: hidden;
+}
+.avatar-picker {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.avatar-choice {
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  padding: 10px 4px 8px;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  background: var(--avatar-bg);
+  color: #2a1b12;
+  cursor: pointer;
+  transition: transform .15s, border-color .15s, box-shadow .15s;
+}
+.avatar-choice > span {
+  font-size: 30px;
+  line-height: 1.2;
+}
+.avatar-choice small {
+  font-size: 11px;
+  font-weight: 700;
+}
+.avatar-choice:hover { transform: translateY(-2px); }
+.avatar-choice.is-selected {
+  border-color: #2a1b12;
+  box-shadow: 0 0 0 2px #f5b841;
+}
+@media (min-width: 520px) {
+  .avatar-picker { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
