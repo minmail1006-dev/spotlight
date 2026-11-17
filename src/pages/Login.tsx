@@ -12,6 +12,7 @@ export default function Login() {
   const from = (loc.state as { from?: string } | null)?.from ?? '/'
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [name, setName] = useState('')
+  const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [over18, setOver18] = useState(false)
@@ -29,6 +30,7 @@ export default function Login() {
       if (!over18) return setError('You must be 18 or over to use Spotlight.')
       if (!consent) return setError('Please read and accept the test data notice.')
       if (name.trim().length < 1) return setError('Enter your first name.')
+      if (!/^[a-zA-Z0-9_]{3,20}$/.test(username.trim())) return setError('Username must be 3–20 characters: letters, numbers or underscores.')
     }
     setBusy(true)
     const res =
@@ -37,7 +39,7 @@ export default function Login() {
         : await supabase.auth.signUp({
             email: email.trim(),
             password,
-            options: { data: { display_name: name.trim(), over18: true, consent: true } },
+            options: { data: { display_name: name.trim(), username: username.trim().toLowerCase(), over18: true, consent: true } },
           })
     setBusy(false)
     if (res.error) return setError(errorMessage(res.error))
@@ -78,10 +80,17 @@ export default function Login() {
 
         <form onSubmit={submit} className="form">
           {mode === 'signup' && (
-            <label className="field">
-              <span>First name</span>
-              <input value={name} onChange={(e) => setName(e.target.value)} maxLength={40} autoComplete="given-name" placeholder="Your first name" />
-            </label>
+            <>
+              <label className="field">
+                <span>First name</span>
+                <input value={name} onChange={(e) => setName(e.target.value)} maxLength={40} autoComplete="given-name" placeholder="Your first name" />
+              </label>
+              <label className="field">
+                <span>Username</span>
+                <input value={username} onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, '').slice(0, 20))} maxLength={20} autoComplete="username" placeholder="e.g. alex_23" required />
+                <small className="muted">3–20 characters. Letters, numbers and underscores. You can change it once, then every 30 days.</small>
+              </label>
+            </>
           )}
           <label className="field">
             <span>Email</span>
