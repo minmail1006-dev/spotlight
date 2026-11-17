@@ -7,6 +7,7 @@ import { useNow, usePlans } from '../lib/hooks'
 import { errorMessage, supabase } from '../lib/supabase'
 import { formatWhen, planPhase } from '../lib/time'
 import { AVATARS, AVATAR_CATEGORIES } from '../lib/avatars'
+import { AvatarArtwork } from '../components/AvatarArtwork'
 
 type MyRedemption = { id: string; code: string; discount_pct: number; created_at: string; plan_id: string; venue: { name: string } | null }
 
@@ -96,7 +97,7 @@ export default function Me() {
                     await refreshProfile()
                     toast(`Your vibe is now: ${avatar.name}!`)
                   }}>
-                    <span>{avatar.emoji}</span><small>{avatar.name}</small>
+                    <AvatarArtwork avatarId={avatar.id} size={54} /><small>{avatar.name}</small>
                   </button>
                 ))}
               </div>

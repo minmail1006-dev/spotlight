@@ -7,7 +7,7 @@ alter table public.profiles
 alter table public.profiles
   drop constraint if exists profiles_avatar_id_allowed;
 alter table public.profiles
-  add constraint profiles_avatar_id_allowed check (avatar_id = any (array['sauna','yoga','meditation','spa','gym','coffee','beer','cocktail','wine','brunch','pizza','sushi','chef','brain','books','art','camera','music','vinyl','gaming','coding','running','cycling','swimming','football','tennis','dance','hiking','camping','surfing','ocean','plants','travel','dog','cat','party','dj','film','comedy','boardgames','fashion']::text[]));
+  add constraint profiles_avatar_id_allowed check (avatar_id = any (array['sauna','yoga','coffee','beer','cocktail','pastry','cooking','jazz','vinyl','dance','theatre','cinema','cycling','swimming','running','tennis','kayaking','climbing','gardening','dog','cat','camera','books','art','gaming','boardgames']::text[]));
 
 create or replace function public.set_avatar(p_avatar_id text)
 returns void
@@ -17,7 +17,7 @@ set search_path = ''
 as $$
 begin
   if auth.uid() is null then raise exception 'Sign in required'; end if;
-  if p_avatar_id is null or p_avatar_id <> all (array['sauna','yoga','meditation','spa','gym','coffee','beer','cocktail','wine','brunch','pizza','sushi','chef','brain','books','art','camera','music','vinyl','gaming','coding','running','cycling','swimming','football','tennis','dance','hiking','camping','surfing','ocean','plants','travel','dog','cat','party','dj','film','comedy','boardgames','fashion']::text[]) then
+  if p_avatar_id is null or p_avatar_id <> all (array['sauna','yoga','coffee','beer','cocktail','pastry','cooking','jazz','vinyl','dance','theatre','cinema','cycling','swimming','running','tennis','kayaking','climbing','gardening','dog','cat','camera','books','art','gaming','boardgames']::text[]) then
     raise exception 'Choose an avatar from the Spotlight collection.';
   end if;
   update public.profiles set avatar_id = p_avatar_id where id = auth.uid();

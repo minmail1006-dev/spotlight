@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getAvatar } from '../lib/avatars'
+import { AvatarArtwork } from './AvatarArtwork'
 
 /* ---------- Toasts ---------- */
 
@@ -15,11 +16,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={show}>
       {children}
-      {msg && (
-        <div className="toast" role="status">
-          {msg}
-        </div>
-      )}
+      {msg && <div className="toast" role="status">{msg}</div>}
     </ToastContext.Provider>
   )
 }
@@ -34,8 +31,8 @@ export function useToast() {
 export function Avatar({ name, size = 32, ring, avatarId }: { name: string; size?: number; ring?: boolean; avatarId?: string | null }) {
   const avatar = getAvatar(avatarId)
   return (
-    <span className={`avatar spotlight-avatar${ring ? ' avatar-ring' : ''}`} style={{ width: size, height: size, fontSize: size * 0.58, background: avatar.color }} role="img" aria-label={`${name}'s ${avatar.name} avatar`}>
-      {avatar.emoji}
+    <span className={`avatar spotlight-avatar${ring ? ' avatar-ring' : ''}`} style={{ width: size, height: size }} role="img" aria-label={`${name}'s ${avatar.name} avatar`}>
+      <AvatarArtwork avatarId={avatar.id} size={size} />
     </span>
   )
 }
@@ -44,9 +41,7 @@ export function AvatarStack({ names, max = 4 }: { names: string[]; max?: number 
   const shown = names.slice(0, max)
   return (
     <span className="avatar-stack">
-      {shown.map((n, i) => (
-        <Avatar key={i} name={n} size={26} ring />
-      ))}
+      {shown.map((n, i) => <Avatar key={i} name={n} size={26} ring />)}
       {names.length > max && <span className="avatar-more">+{names.length - max}</span>}
     </span>
   )
@@ -57,20 +52,9 @@ export function TopBar({ title, back, right }: { title?: string; back?: boolean 
   return (
     <header className="topbar">
       {back ? (
-        <button
-          className="icon-btn"
-          aria-label="Back"
-          onClick={() => (typeof back === 'string' ? nav(back) : window.history.length > 1 ? nav(-1) : nav('/'))}
-        >
-          ←
-        </button>
+        <button className="icon-btn" aria-label="Back" onClick={() => (typeof back === 'string' ? nav(back) : window.history.length > 1 ? nav(-1) : nav('/'))}>←</button>
       ) : title ? null : (
-        <Link to="/" className="brand" aria-label="Spotlight home">
-          <span className="brand-mark" aria-hidden>
-            ◆
-          </span>
-          Spotlight
-        </Link>
+        <Link to="/" className="brand" aria-label="Spotlight home"><span className="brand-mark" aria-hidden>◆</span>Spotlight</Link>
       )}
       {title && <h1 className={back ? 'topbar-title' : 'topbar-title topbar-title-big'}>{title}</h1>}
       <div className="topbar-right">{right}</div>
@@ -79,12 +63,7 @@ export function TopBar({ title, back, right }: { title?: string; back?: boolean 
 }
 
 export function Empty({ title, children }: { title: string; children?: ReactNode }) {
-  return (
-    <div className="empty">
-      <p className="empty-title">{title}</p>
-      {children}
-    </div>
-  )
+  return <div className="empty"><p className="empty-title">{title}</p>{children}</div>
 }
 
 export function Spinner() {
