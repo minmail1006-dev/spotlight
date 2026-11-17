@@ -18,10 +18,10 @@ export default function Safety() {
         <h2>Data and privacy</h2>
         <p>
           Spotlight is a student prototype (MVP) built for a university course. To use it we store your email address,
-          your first name, the plans you post or join, your check-ins and reports.
+          your first name, username, any profile photo you submit, the plans you post or join, your check-ins and reports.
         </p>
         <p>
-          Other signed-in users can see your first name on plans you join. They cannot see your email.
+          Other signed-in users can see your first name and username on your profile and on Plans you join. Approved profile photos are visible to signed-in users. Photos are kept private until reviewed. Your email is not shown to other users.
         </p>
         <p>
           For the course evaluation we log what you do in the app (for example "joined a plan" or "checked in") with a
