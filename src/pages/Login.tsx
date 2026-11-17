@@ -42,7 +42,7 @@ export default function Login() {
             options: { data: { display_name: name.trim(), username: username.trim().toLowerCase(), over18: true, consent: true } },
           })
     setBusy(false)
-    if (res.error) return setError(errorMessage(res.error))
+    if (res.error) return setError(res.error.message.toLowerCase().includes('profiles_username_lower_unique') || res.error.message.toLowerCase().includes('duplicate key') ? 'That username is already taken. Try another.' : errorMessage(res.error))
     if (mode === 'signup' && !res.data.session) {
       return setError('Check your inbox for the confirmation email, then sign in.')
     }
